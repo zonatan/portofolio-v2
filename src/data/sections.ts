@@ -7,6 +7,7 @@ export const sections = [
   { id: "quest", hud: "QUEST LOG", navKey: "quest" },
   { id: "aktivitas", hud: "ACTIVITY FEED", navKey: "activity" },
   { id: "kontak", hud: "COMMS CHANNEL", navKey: "comms" },
+  { id: "buku-tamu", hud: "PLAYER LOG", navKey: "guestbook" },
   { id: "arcade", hud: "BONUS STAGE", navKey: "arcade" },
 ] as const;
 

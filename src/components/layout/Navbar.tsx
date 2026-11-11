@@ -12,8 +12,10 @@ import { useActiveSection } from "@/lib/activeSection";
 import { EASE, EASE_IN_OUT, transition } from "@/lib/motion";
 import { cn, pad2 } from "@/lib/utils";
 
-// Bonus stage (arcade) tidak masuk menu agar navigasi tetap ringkas.
-const navSections = sections.filter((s) => s.id !== "beranda" && s.id !== "arcade");
+// Buku tamu & bonus stage (arcade) tidak masuk menu agar navigasi tetap ringkas.
+const navSections = sections.filter(
+  (s) => s.id !== "beranda" && s.id !== "buku-tamu" && s.id !== "arcade",
+);
 
 function LangToggle({ className }: { className?: string }) {
   const { locale, setLocale, t } = useI18n();

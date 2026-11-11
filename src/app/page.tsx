@@ -2,6 +2,7 @@ import { Ticker } from "@/components/layout/Ticker";
 import { Activity } from "@/components/sections/Activity";
 import { Arcade } from "@/components/sections/arcade/Arcade";
 import { Comms } from "@/components/sections/Comms";
+import { Guestbook } from "@/components/sections/Guestbook";
 import { Hero } from "@/components/sections/Hero";
 import { Loadout } from "@/components/sections/Loadout";
 import { Missions } from "@/components/sections/missions/Missions";
@@ -30,6 +31,7 @@ export default async function Home() {
       <QuestLog />
       <Activity github={github} trophies={trophies} />
       <Comms />
+      <Guestbook />
       <Arcade />
     </>
   );
