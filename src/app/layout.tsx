@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Teko } from "next/font/google";
 import { BootLoader } from "@/components/layout/BootLoader";
@@ -137,6 +139,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SmoothScroll />
           </MotionProvider>
         </LanguageProvider>
+        {/* Statistik pengunjung & kecepatan nyata (aktifkan di dashboard Vercel) */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

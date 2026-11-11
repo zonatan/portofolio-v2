@@ -12,7 +12,8 @@
     "art": "node scripts/generate-project-art.mjs"
   },
   "dependencies": {
-    "lenis": "^1.3.27",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.1.0",
     "lucide-react": "^1.70.0",
     "motion": "^14.11.1",
     "next": "^16.4.6",
