@@ -331,6 +331,83 @@ html.lenis body {
   }
 }
 
+/* ===== Animasi section Aktivitas ===== */
+/* Sinar berjalan menyusuri border panel */
+.beam-dash {
+  animation: beam-dash 7s linear infinite;
+}
+@keyframes beam-dash {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+/* Border avatar berputar */
+.spin-slow {
+  animation: spin-slow 4s linear infinite;
+}
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Garis scan menyapu heatmap */
+.hm-scan {
+  animation: hm-scan 6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+@keyframes hm-scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  55%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+/* Kilau melintas di trophy terbuka */
+.trophy-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 0.16) 50%, transparent 65%);
+  transform: translateX(-130%);
+  animation: trophy-shine 5s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+@keyframes trophy-shine {
+  0%,
+  72% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+/* Rank S berdenyut */
+.rank-pulse {
+  animation: rank-pulse 2.4s ease-in-out infinite;
+}
+@keyframes rank-pulse {
+  50% {
+    text-shadow:
+      0 0 26px rgb(198 255 61 / 0.95),
+      0 0 4px rgb(198 255 61 / 0.9);
+  }
+}
+/* Badge achievement melayang */
+.badge-float {
+  animation: badge-float 3.2s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+@keyframes badge-float {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
 /* Marquee */
 .marquee:hover .marquee-track,
 .marquee:focus-within .marquee-track {
@@ -433,7 +510,13 @@ html.boot-skip #boot-loader {
   }
   .marquee-track,
   .emblem-spin,
-  .radar-ring {
+  .radar-ring,
+  .beam-dash,
+  .spin-slow,
+  .hm-scan,
+  .trophy-shine::after,
+  .rank-pulse,
+  .badge-float {
     animation: none !important;
   }
 }

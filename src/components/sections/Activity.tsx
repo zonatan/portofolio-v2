@@ -1,19 +1,13 @@
 "use client";
 
-import {
-  ArrowUpRight,
-  Flame,
-  GitBranch,
-  Lock,
-  Star,
-  Trophy as TrophyIcon,
-} from "lucide-react";
+import { ArrowUpRight, Flame, GitBranch, Lock, Star, Trophy as TrophyIcon } from "lucide-react";
 import Image from "next/image";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SiGithub } from "react-icons/si";
 import { useI18n } from "@/components/providers/LanguageProvider";
 import { CountUp } from "@/components/ui/AnimatedText";
+import { BeamBorder } from "@/components/ui/BeamBorder";
 import { CornerBrackets } from "@/components/ui/CornerBrackets";
 import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
@@ -62,10 +56,7 @@ function fmtDate(iso: string, months: string[]) {
 function toWeeks(days: ContributionDay[]) {
   if (!days.length) return [];
   const first = new Date(days[0].date + "T00:00:00Z").getUTCDay();
-  const padded: (ContributionDay | null)[] = [
-    ...Array(first).fill(null),
-    ...days,
-  ];
+  const padded: (ContributionDay | null)[] = [...Array(first).fill(null), ...days];
   const weeks: (ContributionDay | null)[][] = [];
   for (let i = 0; i < padded.length; i += 7) weeks.push(padded.slice(i, i + 7));
   return weeks;
@@ -96,10 +87,7 @@ function Heatmap({ days }: { days: ContributionDay[] }) {
     if (!d) return;
     const m = Number(d.date.slice(5, 7)) - 1;
     const prev = weeks[i - 1]?.find(Boolean);
-    if (
-      (!prev || Number(prev.date.slice(5, 7)) - 1 !== m) &&
-      i < weeks.length - 2
-    ) {
+    if ((!prev || Number(prev.date.slice(5, 7)) - 1 !== m) && i < weeks.length - 2) {
       monthLabels.push({ x: i * (CELL + GAP), label: g.months[m] });
     }
   });
@@ -107,60 +95,68 @@ function Heatmap({ days }: { days: ContributionDay[] }) {
   return (
     <div>
       <div ref={scrollRef} className="overflow-x-auto pb-2" data-lenis-prevent>
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          className="block w-full min-w-[640px]"
-          role="img"
-          aria-label={g.yearTotal}
-          onPointerLeave={() => setHover(null)}
-        >
-          {monthLabels.map((m) => (
-            <text
-              key={m.x}
-              x={m.x}
-              y={10}
-              fontSize="9"
-              fontFamily="var(--font-jetbrains), monospace"
-              fill="#847ea0"
-            >
-              {m.label}
-            </text>
-          ))}
-          {weeks.map((w, i) => (
-            <motion.g
-              key={i}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={VIEWPORT}
-              transition={{ duration: 0.25, delay: i * 0.012 }}
-            >
-              {w.map((d, j) =>
-                d ? (
-                  <rect
-                    key={d.date}
-                    x={i * (CELL + GAP)}
-                    y={18 + j * (CELL + GAP)}
-                    width={CELL}
-                    height={CELL}
-                    rx={2}
-                    fill={LEVEL_FILL[d.level] ?? LEVEL_FILL[0]}
-                    stroke={hover?.date === d.date ? "#f1eefc" : "none"}
-                    strokeWidth={1.5}
-                    onPointerEnter={() => setHover(d)}
-                  >
-                    <title>{`${d.count ? `${d.count} ${g.contribOn}` : g.none} ${fmtDate(d.date, g.months)}`}</title>
-                  </rect>
-                ) : null,
-              )}
-            </motion.g>
-          ))}
-        </svg>
+        <div className="relative min-w-[640px]">
+          {/* Garis scan menyapu heatmap */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 top-[18px] overflow-hidden"
+          >
+            <div className="hm-scan absolute inset-0">
+              <div className="from-lime/0 via-lime/10 to-lime/35 border-lime/80 absolute top-0 right-0 h-full w-20 border-r bg-linear-to-r shadow-[4px_0_14px_rgb(198_255_61/0.5)]" />
+            </div>
+          </div>
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            className="relative block w-full"
+            role="img"
+            aria-label={g.yearTotal}
+            onPointerLeave={() => setHover(null)}
+          >
+            {monthLabels.map((m) => (
+              <text
+                key={m.x}
+                x={m.x}
+                y={10}
+                fontSize="9"
+                fontFamily="var(--font-jetbrains), monospace"
+                fill="#847ea0"
+              >
+                {m.label}
+              </text>
+            ))}
+            {weeks.map((w, i) => (
+              <motion.g
+                key={i}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={VIEWPORT}
+                transition={{ duration: 0.25, delay: i * 0.012 }}
+              >
+                {w.map((d, j) =>
+                  d ? (
+                    <rect
+                      key={d.date}
+                      x={i * (CELL + GAP)}
+                      y={18 + j * (CELL + GAP)}
+                      width={CELL}
+                      height={CELL}
+                      rx={2}
+                      fill={LEVEL_FILL[d.level] ?? LEVEL_FILL[0]}
+                      stroke={hover?.date === d.date ? "#f1eefc" : "none"}
+                      strokeWidth={1.5}
+                      onPointerEnter={() => setHover(d)}
+                    >
+                      <title>{`${d.count ? `${d.count} ${g.contribOn}` : g.none} ${fmtDate(d.date, g.months)}`}</title>
+                    </rect>
+                  ) : null,
+                )}
+              </motion.g>
+            ))}
+          </svg>
+        </div>
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-        <p
-          className="text-ink-2 min-h-[1.25rem] font-mono text-xs"
-          aria-live="polite"
-        >
+        <p className="text-ink-2 min-h-[1.25rem] font-mono text-xs" aria-live="polite">
           {hover ? (
             hover.count ? (
               <>
@@ -177,11 +173,7 @@ function Heatmap({ days }: { days: ContributionDay[] }) {
         <div className="text-ink-3 flex items-center gap-1.5 font-mono text-[0.625rem] uppercase">
           {g.less}
           {LEVEL_FILL.map((c) => (
-            <span
-              key={c}
-              className="h-2.5 w-2.5 rounded-[2px]"
-              style={{ background: c }}
-            />
+            <span key={c} className="h-2.5 w-2.5 rounded-[2px]" style={{ background: c }} />
           ))}
           {g.more}
         </div>
@@ -229,9 +221,7 @@ function Languages({ data }: { data: GitHubData }) {
               style={{ background: LANG_COLOR[l.name] ?? "#5b3fb8" }}
             />
             {l.name}
-            <span className="text-ink-3">
-              {Math.round((l.count / total) * 100)}%
-            </span>
+            <span className="text-ink-3">{Math.round((l.count / total) * 100)}%</span>
           </li>
         ))}
       </ul>
@@ -246,7 +236,8 @@ function GitHubPanel({ data }: { data: GitHubData | null }) {
 
   if (!data || (!data.days.length && !data.repos.length && !data.avatarUrl)) {
     return (
-      <div className="hud-panel clip-corner p-6">
+      <div className="hud-panel clip-corner relative p-6">
+        <BeamBorder />
         <p className="text-ink-2 py-10 text-center text-sm">{g.unavailable}</p>
       </div>
     );
@@ -268,7 +259,8 @@ function GitHubPanel({ data }: { data: GitHubData | null }) {
   ];
 
   return (
-    <div className="hud-panel clip-corner p-5 sm:p-6">
+    <div className="hud-panel clip-corner relative p-5 sm:p-6">
+      <BeamBorder duration={9} />
       {/* Profil */}
       <div className="flex items-start gap-4">
         {data.avatarUrl && (
@@ -280,15 +272,22 @@ function GitHubPanel({ data }: { data: GitHubData | null }) {
             aria-label={g.open}
           >
             <CornerBrackets size="h-3 w-3" color="border-lime" />
-            <span className="clip-corner-sm bg-raised relative block h-16 w-16 overflow-hidden sm:h-20 sm:w-20">
-              <Image
-                src={data.avatarUrl}
-                alt={data.name ?? data.login}
-                fill
-                unoptimized
-                sizes="80px"
-                className="object-cover"
+            {/* Border gradien berputar */}
+            <span className="clip-corner-sm relative block h-16 w-16 overflow-hidden p-[2px] sm:h-20 sm:w-20">
+              <span
+                aria-hidden
+                className="spin-slow absolute -inset-1/2 bg-[conic-gradient(from_0deg,#c6ff3d,transparent_25%,#8b5cf6_50%,transparent_75%,#c6ff3d)]"
               />
+              <span className="clip-corner-sm bg-raised relative block h-full w-full overflow-hidden">
+                <Image
+                  src={data.avatarUrl}
+                  alt={data.name ?? data.login}
+                  fill
+                  unoptimized
+                  sizes="80px"
+                  className="object-cover"
+                />
+              </span>
             </span>
           </a>
         )}
@@ -314,22 +313,14 @@ function GitHubPanel({ data }: { data: GitHubData | null }) {
               {g.live}
             </StatusChip>
           </div>
-          <p className="text-violet-soft mt-1 font-mono text-xs">
-            @{data.login}
-          </p>
-          {data.bio && (
-            <p className="text-ink-2 mt-2 text-sm leading-relaxed">
-              {data.bio}
-            </p>
-          )}
+          <p className="text-violet-soft mt-1 font-mono text-xs">@{data.login}</p>
+          {data.bio && <p className="text-ink-2 mt-2 text-sm leading-relaxed">{data.bio}</p>}
           <p className="text-ink-3 mt-2 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[0.6875rem]">
             <span>
-              <span className="text-ink">{data.followers ?? 0}</span>{" "}
-              {g.followers}
+              <span className="text-ink">{data.followers ?? 0}</span> {g.followers}
             </span>
             <span>
-              <span className="text-ink">{data.following ?? 0}</span>{" "}
-              {g.following}
+              <span className="text-ink">{data.following ?? 0}</span> {g.following}
             </span>
             {data.createdAt && (
               <span>
@@ -343,14 +334,9 @@ function GitHubPanel({ data }: { data: GitHubData | null }) {
       {/* Statistik */}
       <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {stats.map((st) => (
-          <div
-            key={st.label}
-            className="border-violet-dim/30 bg-abyss/40 border p-3"
-          >
+          <div key={st.label} className="border-violet-dim/30 bg-abyss/40 border p-3">
             <dt className="hud-label text-ink-3 flex items-center gap-1.5 text-[0.625rem]">
-              {st.flame && (
-                <Flame size={11} className="text-magenta" aria-hidden />
-              )}
+              {st.flame && <Flame size={11} className="text-magenta" aria-hidden />}
               {st.label}
             </dt>
             <dd
@@ -401,11 +387,7 @@ function GitHubPanel({ data }: { data: GitHubData | null }) {
                   className="group border-violet-dim/30 hover:border-lime/50 hover:bg-raised flex h-full flex-col border p-4 transition-colors"
                 >
                   <span className="text-ink group-hover:text-lime flex items-center gap-2 font-mono text-sm font-semibold transition-colors">
-                    <GitBranch
-                      size={14}
-                      aria-hidden
-                      className="text-violet-soft shrink-0"
-                    />
+                    <GitBranch size={14} aria-hidden className="text-violet-soft shrink-0" />
                     <span className="truncate">{r.name}</span>
                   </span>
                   <span className="text-ink-2 mt-1.5 line-clamp-2 text-xs leading-relaxed">
@@ -416,9 +398,7 @@ function GitHubPanel({ data }: { data: GitHubData | null }) {
                       <span className="flex items-center gap-1.5">
                         <span
                           className="h-2 w-2 rounded-full"
-                          style={{
-                            background: LANG_COLOR[r.language] ?? "#a78bfa",
-                          }}
+                          style={{ background: LANG_COLOR[r.language] ?? "#a78bfa" }}
                         />
                         {r.language}
                       </span>
@@ -443,19 +423,14 @@ function GitHubPanel({ data }: { data: GitHubData | null }) {
 }
 
 /* ------------------------------------------------------------------ */
-function TrophyPanel({
-  data,
-  trophies,
-}: {
-  data: GitHubData | null;
-  trophies: Trophy[];
-}) {
+function TrophyPanel({ data, trophies }: { data: GitHubData | null; trophies: Trophy[] }) {
   const { t } = useI18n();
   const g = t.activity.github;
   if (!data) return null;
 
   return (
-    <div className="hud-panel clip-corner-tr p-5 sm:p-6">
+    <div className="hud-panel clip-corner-tr relative p-5 sm:p-6">
+      <BeamBorder shape="tr" duration={6.5} delay={0.2} />
       <p className="hud-label text-lime mb-4 flex items-center gap-2">
         <TrophyIcon size={13} aria-hidden /> {g.trophies}
       </p>
@@ -469,8 +444,10 @@ function TrophyPanel({
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={VIEWPORT}
               transition={{ duration: 0.35, ease: EASE, delay: i * 0.06 }}
+              style={{ "--d": `${i * 0.8}s` } as React.CSSProperties}
               className={cn(
                 "clip-corner-sm relative flex flex-col items-center border px-2 pt-3 pb-2.5 text-center",
+                !locked && "trophy-shine",
                 locked
                   ? "border-violet-dim/25 bg-abyss/30"
                   : tr.rank === "S"
@@ -483,6 +460,7 @@ function TrophyPanel({
                 className={cn(
                   "font-display flex h-10 items-center text-4xl leading-none font-bold",
                   locked ? "text-ink-mute" : RANK_STYLE[tr.rank as Rank],
+                  tr.rank === "S" && "rank-pulse",
                 )}
               >
                 {locked ? <Lock size={24} aria-hidden /> : tr.rank}
@@ -491,29 +469,19 @@ function TrophyPanel({
                 {locked ? g.locked : g.trophyNames[tr.key]}
               </span>
               <span className="text-ink-3 font-mono text-[0.625rem]">
-                {g.trophyDesc[tr.key]}:{" "}
-                <span className="text-ink-2">{tr.value}</span>
+                {g.trophyDesc[tr.key]}: <span className="text-ink-2">{tr.value}</span>
               </span>
               <span className="bg-abyss mt-2 h-1 w-full overflow-hidden rounded-full">
                 <motion.span
-                  className={cn(
-                    "block h-full origin-left",
-                    locked ? "bg-ink-mute" : "bg-lime",
-                  )}
+                  className={cn("block h-full origin-left", locked ? "bg-ink-mute" : "bg-lime")}
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: tr.progress }}
                   viewport={VIEWPORT}
-                  transition={{
-                    duration: 0.6,
-                    ease: EASE,
-                    delay: 0.2 + i * 0.06,
-                  }}
+                  transition={{ duration: 0.6, ease: EASE, delay: 0.2 + i * 0.06 }}
                 />
               </span>
               <span className="text-ink-3 mt-1 font-mono text-[0.5625rem] tracking-[0.12em] uppercase">
-                {tr.next
-                  ? `${g.next} ${tr.next.rank} · ${tr.next.at}`
-                  : g.maxed}
+                {tr.next ? `${g.next} ${tr.next.rank} · ${tr.next.at}` : g.maxed}
               </span>
             </motion.li>
           );
@@ -541,22 +509,20 @@ function TrophyPanel({
                 initial={{ opacity: 0, y: 10, rotate: -8 }}
                 whileInView={{ opacity: 1, y: 0, rotate: 0 }}
                 viewport={VIEWPORT}
-                transition={{
-                  type: "spring",
-                  stiffness: 260,
-                  damping: 16,
-                  delay: 0.2 + i * 0.1,
-                }}
-                className="flex w-20 flex-col items-center text-center"
+                transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.2 + i * 0.1 }}
+                className="group flex w-20 flex-col items-center text-center"
               >
-                <span className="relative">
+                <span
+                  className="badge-float relative"
+                  style={{ "--d": `${i * 0.4}s` } as React.CSSProperties}
+                >
                   <Image
                     src={a.image}
                     alt={a.name}
                     width={64}
                     height={64}
                     unoptimized
-                    className="h-16 w-16 drop-shadow-[0_6px_14px_rgb(139_92_246/0.35)]"
+                    className="h-16 w-16 drop-shadow-[0_6px_14px_rgb(139_92_246/0.35)] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
                   />
                   {a.tier && (
                     <span className="bg-lime text-abyss absolute -right-1 bottom-0 rounded-full px-1.5 font-mono text-[0.625rem] font-bold">
@@ -583,7 +549,8 @@ function PatchNotes() {
   const { t, l } = useI18n();
   const d = t.activity.devlog;
   return (
-    <div className="hud-panel clip-corner-tr p-5 sm:p-6">
+    <div className="hud-panel clip-corner-tr relative p-5 sm:p-6">
+      <BeamBorder shape="tr" duration={8} delay={0.4} />
       <p className="hud-label text-lime mb-5">{d.title}</p>
       <ol className="space-y-5">
         {devlog.map((e, i) => (
@@ -593,29 +560,21 @@ function PatchNotes() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={VIEWPORT}
             transition={{ duration: 0.4, ease: EASE, delay: i * 0.08 }}
-            className={cn(
-              "border-l-2 pl-4",
-              i === 0 ? "border-lime" : "border-violet-dim/50",
-            )}
+            className={cn("border-l-2 pl-4", i === 0 ? "border-lime" : "border-violet-dim/50")}
           >
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-ink font-mono text-xs font-bold tracking-[0.14em]">
                 {e.version}
               </span>
               <StatusChip tone={TAG_TONE[e.tag]}>{d.tags[e.tag]}</StatusChip>
-              <span className="hud-label text-ink-3 ml-auto text-[0.625rem]">
-                {e.date}
-              </span>
+              <span className="hud-label text-ink-3 ml-auto text-[0.625rem]">{e.date}</span>
             </div>
             <h3 className="font-display mt-2 text-2xl leading-tight font-bold uppercase">
               {l(e.title)}
             </h3>
             <ul className="mt-2 space-y-1.5">
               {e.notes.map((n, k) => (
-                <li
-                  key={k}
-                  className="text-ink-2 flex gap-2 text-sm leading-relaxed"
-                >
+                <li key={k} className="text-ink-2 flex gap-2 text-sm leading-relaxed">
                   <span className="text-lime font-mono" aria-hidden>
                     +
                   </span>
@@ -631,13 +590,7 @@ function PatchNotes() {
 }
 
 /* ------------------------------------------------------------------ */
-export function Activity({
-  github,
-  trophies,
-}: {
-  github: GitHubData | null;
-  trophies: Trophy[];
-}) {
+export function Activity({ github, trophies }: { github: GitHubData | null; trophies: Trophy[] }) {
   const { t } = useI18n();
   return (
     <Section id="aktivitas" bgWord={t.activity.bg}>
