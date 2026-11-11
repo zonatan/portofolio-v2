@@ -22,8 +22,8 @@ export const projects: Project[] = [
       en: "Church information system for GSJA Kairos Manado with an AI church assistant powered by a local LLM.",
     },
     description: {
-      id: "SIGER KAIROS mendigitalkan administrasi GSJA Kairos Manado: data jemaat, jadwal ibadah, pelayanan, dan pengumuman dalam satu panel admin berbasis Filament. Fitur unggulannya adalah AI Asisten Gereja yang berjalan di LLM lokal (Ollama + Qwen 2.5), sehingga data jemaat tetap berada di server sendiri tanpa dikirim ke layanan pihak ketiga.",
-      en: "SIGER KAIROS digitizes the administration of GSJA Kairos Manado: congregation data, service schedules, ministries, and announcements in a single Filament admin panel. Its flagship feature is an AI church assistant running on a local LLM (Ollama + Qwen 2.5), so congregation data stays on our own server instead of being sent to third-party services.",
+      id: "Proyek skripsi saya. SIGER KAIROS mendigitalkan administrasi GSJA Kairos Manado: data jemaat, jadwal ibadah, pelayanan, dan pengumuman dalam satu panel admin berbasis Filament. Fitur unggulannya adalah AI Asisten Gereja yang berjalan di LLM lokal (Ollama + Qwen 2.5), sehingga data jemaat tetap berada di server sendiri tanpa dikirim ke layanan pihak ketiga.",
+      en: "My thesis project. SIGER KAIROS digitizes the administration of GSJA Kairos Manado: congregation data, service schedules, ministries, and announcements in a single Filament admin panel. Its flagship feature is an AI church assistant running on a local LLM (Ollama + Qwen 2.5), so congregation data stays on our own server instead of being sent to third-party services.",
     },
     role: {
       id: "Full-stack developer — perancangan database, panel admin, dan integrasi LLM.",
@@ -66,12 +66,12 @@ export const projects: Project[] = [
       en: "A VR learning experience on Minahasa culture with an interactive quiz using Fisher-Yates Shuffle.",
     },
     description: {
-      id: "Proyek skripsi yang mengajak pengguna menjelajahi rumah adat, tarian, dan tradisi Minahasa dalam ruang virtual. Di akhir tur, kuis interaktif mengacak urutan soal dan pilihan jawaban dengan algoritma Fisher-Yates Shuffle sehingga setiap percobaan terasa berbeda dan adil.",
-      en: "My thesis project that lets users explore Minahasa traditional houses, dances, and customs in a virtual space. After the tour, an interactive quiz shuffles question and answer order using the Fisher-Yates Shuffle algorithm so every attempt feels different and fair.",
+      id: "Proyek mata kuliah: media pembelajaran yang mengajak pengguna menjelajahi rumah adat, tarian, dan tradisi Minahasa dalam ruang virtual. Di akhir tur, kuis interaktif mengacak urutan soal dan pilihan jawaban dengan algoritma Fisher-Yates Shuffle sehingga setiap percobaan terasa berbeda dan adil.",
+      en: "A course project: a learning experience that lets users explore Minahasa traditional houses, dances, and customs in a virtual space. After the tour, an interactive quiz shuffles question and answer order using the Fisher-Yates Shuffle algorithm so every attempt feels different and fair.",
     },
     role: {
-      id: "Peneliti & developer tunggal — desain pengalaman, pemrograman Unity, dan pengujian.",
-      en: "Sole researcher & developer — experience design, Unity programming, and testing.",
+      id: "Developer — desain pengalaman, pemrograman Unity, dan pengujian.",
+      en: "Developer — experience design, Unity programming, and testing.",
     },
     tech: ["Unity", "C#", "VR"],
     ...img("vr-kebudayaan-minahasa"),

@@ -156,7 +156,7 @@ export const skillGroups: SkillGroup[] = [
         name: "Unity (VR)",
         icon: "unity",
         level: 2,
-        note: { id: "Dipakai untuk proyek skripsi VR.", en: "Used for my VR thesis project." },
+        note: { id: "Dipakai untuk media pembelajaran VR.", en: "Used for a VR learning project." },
       },
     ],
   },
