@@ -300,6 +300,27 @@ html.lenis body {
   );
 }
 
+/* Emblem 3D: goyang pelan lalu sesekali berputar penuh (loop mulus: -28° ≡ 332°) */
+.emblem-spin {
+  transform: rotateX(10deg) rotateY(-28deg);
+  animation: emblem-spin 10s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  will-change: transform;
+}
+@keyframes emblem-spin {
+  0% {
+    transform: rotateX(10deg) rotateY(-28deg);
+  }
+  42% {
+    transform: rotateX(10deg) rotateY(28deg);
+  }
+  58% {
+    transform: rotateX(10deg) rotateY(388deg);
+  }
+  100% {
+    transform: rotateX(10deg) rotateY(332deg);
+  }
+}
+
 /* Marquee */
 .marquee:hover .marquee-track,
 .marquee:focus-within .marquee-track {
@@ -400,7 +421,8 @@ html.boot-skip #boot-loader {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .marquee-track {
+  .marquee-track,
+  .emblem-spin {
     animation: none !important;
   }
 }

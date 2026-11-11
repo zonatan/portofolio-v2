@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/providers/LanguageProvider";
 import { getLenis } from "@/components/providers/SmoothScroll";
 import { Button } from "@/components/ui/Button";
-import { Monogram } from "@/components/ui/Monogram";
+import { Emblem3D } from "@/components/ui/Emblem3D";
 import { profile } from "@/data/profile";
 import { sections } from "@/data/sections";
 import { useActiveSection } from "@/lib/activeSection";
@@ -113,7 +113,7 @@ export function Navbar() {
             data-cursor="hover"
             onClick={() => setOpen(false)}
           >
-            <Monogram className="text-violet-soft h-9 w-9 transition-transform duration-300 group-hover:rotate-[8deg]" />
+            <Emblem3D className="h-9 w-9" />
             <span className="hidden flex-col leading-none sm:flex">
               <span className="font-display text-xl font-bold tracking-wide">
                 {profile.nickname.toUpperCase()}
