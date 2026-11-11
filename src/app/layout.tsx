@@ -53,13 +53,12 @@ export const metadata: Metadata = {
     siteName: `${profile.name} — Portofolio`,
     title: dict.meta.title,
     description: dict.meta.description,
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: profile.name }],
+    // Gambar pratinjau dibuat otomatis oleh src/app/opengraph-image.tsx
   },
   twitter: {
     card: "summary_large_image",
     title: dict.meta.title,
     description: dict.meta.description,
-    images: ["/og-image.png"],
   },
   robots: { index: true, follow: true },
 };
@@ -74,7 +73,7 @@ const jsonLd = {
   "@type": "Person",
   name: profile.name,
   url: SITE_URL,
-  image: `${SITE_URL}/og-image.png`,
+  image: `${SITE_URL}${profile.photo}`,
   jobTitle: profile.role.id,
   email: `mailto:${profile.email}`,
   address: {

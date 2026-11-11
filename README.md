@@ -65,7 +65,7 @@ Cara paling mudah: **timpa file dengan nama yang sama**. Jika format berbeda (mi
 | `public/images/profile/foto-about-back.webp` | Kartu flip Profil — sisi **belakang** | **4:5**, 720×900 px | `profile.ts → photoAboutBack` |
 | `public/images/projects/<slug>/cover.svg` | Kartu & modal proyek (saat ini **ilustrasi**, bukan screenshot asli) | **16:9**, mis. 1600×900 px | `projects.ts → cover` |
 | `public/images/projects/<slug>/1.svg`, `2.svg` | Galeri modal | **16:9**, 1600×900 px | `projects.ts → gallery` |
-| `public/og-image.png` | Preview link (WhatsApp, LinkedIn, dll.) | **1200×630 px** | `src/app/layout.tsx` |
+| Preview link (WhatsApp, LinkedIn, dll.) | Dibuat otomatis dari foto & data profil | **1200×630 px** | `src/app/opengraph-image.tsx` |
 | `public/cv/CV-Zonatan-Sihombing.pdf` | Tombol "Unduh CV" | PDF | `profile.ts → cv` |
 
 > Foto dibuat otomatis dari file di root project:
