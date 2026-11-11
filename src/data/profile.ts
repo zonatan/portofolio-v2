@@ -50,6 +50,8 @@ export const profile = {
   } satisfies Localized,
   /** File CV (PDF). */
   cv: "/cv/CV-Zonatan-Sihombing.pdf",
+  /** Username GitHub untuk section Aktivitas (statistik live). */
+  githubUsername: "zonatan",
   socials: [
     { key: "github", label: "GitHub", handle: "zonatan", url: "https://github.com/zonatan" },
     {

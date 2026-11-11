@@ -5,6 +5,7 @@ export const sections = [
   { id: "loadout", hud: "LOADOUT", navKey: "loadout" },
   { id: "misi", hud: "MISSIONS", navKey: "missions" },
   { id: "quest", hud: "QUEST LOG", navKey: "quest" },
+  { id: "aktivitas", hud: "ACTIVITY FEED", navKey: "activity" },
   { id: "kontak", hud: "COMMS CHANNEL", navKey: "comms" },
   { id: "arcade", hud: "BONUS STAGE", navKey: "arcade" },
 ] as const;
