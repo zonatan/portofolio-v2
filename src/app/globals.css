@@ -408,6 +408,131 @@ html.lenis body {
   }
 }
 
+/* ===== Animasi foto ===== */
+/* Glitch digital: irisan foto bergeser sekejap tiap ~7 detik */
+.glitch-a,
+.glitch-b {
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: glitch-a 7s steps(1, end) infinite;
+  animation-delay: var(--d, 0s);
+}
+.glitch-a {
+  filter: hue-rotate(75deg) saturate(1.8) brightness(1.1);
+}
+.glitch-b {
+  filter: hue-rotate(-70deg) saturate(1.8) brightness(1.1);
+  animation-name: glitch-b;
+}
+@keyframes glitch-a {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: none;
+  }
+  90% {
+    opacity: 0.75;
+    clip-path: inset(12% 0 70% 0);
+    transform: translateX(-10px);
+  }
+  91% {
+    clip-path: inset(56% 0 24% 0);
+    transform: translateX(9px);
+  }
+  92% {
+    clip-path: inset(34% 0 50% 0);
+    transform: translateX(-6px);
+  }
+  93% {
+    clip-path: inset(80% 0 6% 0);
+    transform: translateX(5px);
+  }
+  94%,
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: none;
+  }
+}
+@keyframes glitch-b {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: none;
+  }
+  90% {
+    opacity: 0.7;
+    clip-path: inset(44% 0 38% 0);
+    transform: translateX(8px);
+  }
+  91% {
+    clip-path: inset(8% 0 80% 0);
+    transform: translateX(-7px);
+  }
+  92% {
+    clip-path: inset(66% 0 14% 0);
+    transform: translateX(10px);
+  }
+  93% {
+    clip-path: inset(22% 0 62% 0);
+    transform: translateX(-4px);
+  }
+  94%,
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: none;
+  }
+}
+/* Garis scan berulang di foto */
+.photo-scan {
+  transform: translateY(-120%);
+  animation: photo-scan 6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  animation-delay: calc(var(--d, 0s) + 2s);
+}
+@keyframes photo-scan {
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  40% {
+    transform: translateY(900%);
+    opacity: 1;
+  }
+  45%,
+  100% {
+    transform: translateY(900%);
+    opacity: 0;
+  }
+}
+/* Kilau holografik berkala di foto */
+.photo-shine {
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgb(198 255 61 / 0.22) 44%,
+    rgb(255 255 255 / 0.38) 50%,
+    rgb(255 61 154 / 0.22) 56%,
+    transparent 70%
+  );
+  transform: translateX(-130%);
+  mix-blend-mode: screen;
+  animation: photo-shine 6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+@keyframes photo-shine {
+  0%,
+  65% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+
 /* Marquee */
 .marquee:hover .marquee-track,
 .marquee:focus-within .marquee-track {
@@ -516,7 +641,11 @@ html.boot-skip #boot-loader {
   .hm-scan,
   .trophy-shine::after,
   .rank-pulse,
-  .badge-float {
+  .badge-float,
+  .glitch-a,
+  .glitch-b,
+  .photo-scan,
+  .photo-shine {
     animation: none !important;
   }
 }

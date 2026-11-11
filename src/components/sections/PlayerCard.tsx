@@ -6,7 +6,9 @@ import { motion, useSpring } from "motion/react";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/providers/LanguageProvider";
+import { BeamBorder } from "@/components/ui/BeamBorder";
 import { CornerBrackets } from "@/components/ui/CornerBrackets";
+import { PhotoFX } from "@/components/ui/PhotoFX";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 import { profile } from "@/data/profile";
 import { useFinePointer } from "@/lib/hooks";
@@ -117,6 +119,9 @@ export function PlayerCard() {
                 aria-hidden
                 className="from-abyss/90 absolute inset-0 bg-linear-to-t via-transparent to-transparent"
               />
+              {/* Kilau holografik otomatis + sinar border */}
+              <PhotoFX shine delay={0.5} />
+              <BeamBorder duration={7.5} delay={0.3} />
               {/* Kilau holografik mengikuti kursor */}
               <div
                 aria-hidden
@@ -166,6 +171,7 @@ export function PlayerCard() {
               />
               <div aria-hidden className="bg-abyss/40 absolute inset-0" />
               <div aria-hidden className="scanlines absolute inset-0" />
+              <BeamBorder duration={7.5} delay={0.3} />
 
               <div className="relative flex h-full flex-col p-5 sm:p-6">
                 <div className="flex items-center justify-between">

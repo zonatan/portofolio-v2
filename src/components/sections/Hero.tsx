@@ -7,7 +7,9 @@ import { useEffect } from "react";
 import { useI18n } from "@/components/providers/LanguageProvider";
 import { ScrambleText, Typewriter } from "@/components/ui/AnimatedText";
 import { Button } from "@/components/ui/Button";
+import { BeamBorder } from "@/components/ui/BeamBorder";
 import { CornerBrackets } from "@/components/ui/CornerBrackets";
+import { PhotoFX } from "@/components/ui/PhotoFX";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { profile } from "@/data/profile";
@@ -202,6 +204,16 @@ export function Hero() {
                     aria-hidden
                     className="from-abyss/80 to-violet/10 absolute inset-0 bg-linear-to-t via-transparent"
                   />
+                  {/* Efek foto: glitch digital berkala + garis scan berulang */}
+                  <PhotoFX
+                    src={profile.photo}
+                    sizes="(min-width: 1024px) 40vw, (min-width: 640px) 384px, 304px"
+                    objectClass="object-cover object-[50%_35%]"
+                    glitch
+                    scan
+                    delay={1}
+                  />
+                  <BeamBorder duration={8} delay={0.6} />
                   {/* Garis scan menyapu sekali */}
                   {booted && !still && (
                     <motion.div
