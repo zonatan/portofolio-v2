@@ -17,8 +17,18 @@ const FILE = join(process.cwd(), ".data", "quote.json");
 export class StorageUnavailableError extends Error {}
 
 function redisConfig() {
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  let url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  let token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  // Integrasi Vercel bisa memakai prefix custom (mis. STORAGE_REST_API_URL) → cari otomatis.
+  if (!url || !token) {
+    const key = Object.keys(process.env).find(
+      (k) => k.endsWith("_REST_API_URL") && process.env[k.replace(/_URL$/, "_TOKEN")],
+    );
+    if (key) {
+      url = process.env[key];
+      token = process.env[key.replace(/_URL$/, "_TOKEN")];
+    }
+  }
   return url && token ? { url: url.replace(/\/$/, ""), token } : null;
 }
 
