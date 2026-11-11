@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import {
   getQuote,
   isLocked,
@@ -6,34 +5,13 @@ import {
   setQuote,
   StorageUnavailableError,
 } from "@/lib/server/quoteStore";
+import { ADMIN_PIN as PIN, cleanText, clientIp, noStore, pinMatches } from "@/lib/server/redis";
 
 export const dynamic = "force-dynamic";
 
-/**
- * PIN edit kutipan — WAJIB diisi lewat env QUOTE_EDIT_PIN (.env.local / Vercel).
- * Sengaja tidak ada nilai default di kode agar PIN tidak ikut ter-upload ke GitHub.
- * Jika kosong, fitur edit dinonaktifkan.
- */
-const PIN = process.env.QUOTE_EDIT_PIN?.trim() || "";
+// PIN edit kutipan — WAJIB diisi lewat env QUOTE_EDIT_PIN (.env.local / Vercel), tanpa default di kode.
 const MIN_LEN = 3;
 const MAX_LEN = 180;
-
-function pinMatches(input: unknown) {
-  if (!PIN || typeof input !== "string") return false;
-  const a = Buffer.from(input.padEnd(32, "\0").slice(0, 32));
-  const b = Buffer.from(PIN.padEnd(32, "\0").slice(0, 32));
-  return timingSafeEqual(a, b) && input.length === PIN.length;
-}
-
-function clientIp(req: Request) {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    "local"
-  );
-}
-
-const noStore = { "Cache-Control": "no-store" };
 
 export async function GET() {
   const quote = await getQuote();
@@ -76,10 +54,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "text" }, { status: 400, headers: noStore });
     }
     // Rapikan: buang karakter kontrol & spasi berlebih
-    const text = body.text
-      .replace(/[\u0000-\u001f\u007f]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
+    const text = cleanText(body.text);
     if (text.length < MIN_LEN || text.length > MAX_LEN) {
       return Response.json({ error: "length" }, { status: 400, headers: noStore });
     }

@@ -6,47 +6,14 @@
  *   (atau KV_REST_API_URL + KV_REST_API_TOKEN jika memakai integrasi Vercel).
  * - Lokal (npm run dev): file `.data/quote.json` jika Redis belum diatur.
  */
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { canUseFile, readJsonFile, redis, redisConfig, writeJsonFile } from "./redis";
+
+export { StorageUnavailableError } from "./redis";
 
 export type StoredQuote = { text: string; updatedAt: string };
 
 const KEY = "zs:quote";
-const FILE = join(process.cwd(), ".data", "quote.json");
-
-export class StorageUnavailableError extends Error {}
-
-function redisConfig() {
-  let url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  let token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-  // Integrasi Vercel bisa memakai prefix custom (mis. STORAGE_REST_API_URL) → cari otomatis.
-  if (!url || !token) {
-    const key = Object.keys(process.env).find(
-      (k) => k.endsWith("_REST_API_URL") && process.env[k.replace(/_URL$/, "_TOKEN")],
-    );
-    if (key) {
-      url = process.env[key];
-      token = process.env[key.replace(/_URL$/, "_TOKEN")];
-    }
-  }
-  return url && token ? { url: url.replace(/\/$/, ""), token } : null;
-}
-
-async function redis<T = unknown>(command: (string | number)[]): Promise<T> {
-  const cfg = redisConfig()!;
-  const res = await fetch(cfg.url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${cfg.token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(command),
-    cache: "no-store",
-  });
-  if (!res.ok) throw new StorageUnavailableError(`Redis error ${res.status}`);
-  const data = (await res.json()) as { result: T };
-  return data.result;
-}
-
-/** Penyimpanan berbasis file hanya untuk development lokal. */
-const canUseFile = () => !process.env.VERCEL;
+const FILE = "quote.json";
 
 export async function getQuote(): Promise<StoredQuote | null> {
   try {
@@ -54,7 +21,7 @@ export async function getQuote(): Promise<StoredQuote | null> {
       const raw = await redis<string | null>(["GET", KEY]);
       return raw ? (JSON.parse(raw) as StoredQuote) : null;
     }
-    if (canUseFile()) return JSON.parse(await readFile(FILE, "utf8")) as StoredQuote;
+    if (canUseFile()) return await readJsonFile<StoredQuote | null>(FILE, null);
   } catch {
     /* belum ada data / gagal baca → pakai kutipan default */
   }
@@ -67,11 +34,7 @@ export async function setQuote(text: string): Promise<StoredQuote> {
     await redis(["SET", KEY, JSON.stringify(value)]);
     return value;
   }
-  if (!canUseFile()) {
-    throw new StorageUnavailableError("Penyimpanan belum dikonfigurasi (Upstash Redis).");
-  }
-  await mkdir(join(process.cwd(), ".data"), { recursive: true });
-  await writeFile(FILE, JSON.stringify(value, null, 2), "utf8");
+  await writeJsonFile(FILE, value);
   return value;
 }
 
