@@ -24,8 +24,7 @@ export const profile = {
   coordinates: "1.4748° N, 124.8421° E",
   // TODO: ganti — tahun angkatan / semester kuliah
   studyYear: 4,
-  // TODO: ganti — dengan email asli
-  email: "halo@example.com",
+  email: "zonatan.sh03@gmail.com",
   openToWork: true,
   // TODO: ganti — bio singkat sesuai gaya kamu
   bio: {

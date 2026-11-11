@@ -2,10 +2,13 @@ export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://zonatan.vercel.app").replace(
-  /\/$/,
-  "",
-);
+/** URL produksi: env NEXT_PUBLIC_SITE_URL → domain produksi Vercel → default. */
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://zonatanx.vercel.app")
+).replace(/\/$/, "");
 
 /** Placeholder blur gelap untuk next/image (dipakai semua gambar). */
 export const BLUR_DATA_URL =
