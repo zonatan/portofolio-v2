@@ -68,6 +68,14 @@
     -webkit-text-size-adjust: 100%;
     scroll-padding-top: 4rem;
   }
+  /* Di layar laptop/desktop, seluruh UI diskalakan 90% (setara zoom browser 90%).
+     Semua ukuran memakai rem, jadi ikut mengecil. Persentase tetap menghormati
+     pengaturan ukuran huruf pengguna di browser. Di HP tetap 100% agar mudah dibaca. */
+  @media (min-width: 1024px) {
+    html {
+      font-size: 90%;
+    }
+  }
   html:not(.lenis) {
     scroll-behavior: smooth;
   }
