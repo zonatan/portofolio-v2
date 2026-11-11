@@ -5,7 +5,8 @@
  *
  * Menghasilkan:
  *  - public/images/profile/foto-utama.svg, foto-about.svg
- *  - public/images/profile/foto-utama.webp (dari fotosaya.jpeg di root, jika ada)
+ *  - public/images/profile/foto-utama.webp, foto-about.webp, foto-about-back.webp
+ *    (dari fotosayabaru.jpeg / fotosaya.jpeg / fotosaya2.jpeg di root, jika ada)
  *  - public/images/projects/<slug>/cover.svg, 1.svg, 2.svg (slug dibaca dari src/data/projects.ts)
  *  - public/og-image.svg + public/og-image.png (1200x630)
  *  - public/cv/CV-Zonatan-Sihombing.pdf (placeholder 1 halaman)
@@ -196,17 +197,29 @@ async function main() {
     placeholder({ w: 800, h: 800, title: "FOTO ABOUT", sub: "GANTI SAYA · 1:1", seed: 2 }),
   );
 
-  // Foto asli → WebP terkompresi (4:5)
-  const photo = join(root, "fotosaya.jpeg");
-  const webp = join(pub, "images/profile/foto-utama.webp");
-  if (existsSync(photo) && (FORCE || !existsSync(webp))) {
-    await sharp(photo)
-      .rotate()
-      .resize(720, 900, { fit: "cover", position: "north" })
-      .webp({ quality: 76 })
-      .toFile(webp);
-    console.log("  tulis images/profile/foto-utama.webp (dari fotosaya.jpeg)");
-  } else if (!existsSync(webp)) {
+  // ---- Foto asli → WebP terkompresi (4:5, 720x900) ----
+  // Pemetaan (ubah di sini jika ingin menukar foto):
+  //   fotosayabaru.jpeg → hero (halaman awal)          → foto-utama.webp
+  //   fotosaya.jpeg     → kartu Profil, sisi DEPAN     → foto-about.webp
+  //   fotosaya2.jpeg    → kartu Profil, sisi BELAKANG  → foto-about-back.webp
+  const toWebp = async (srcName, outRel, opts = {}) => {
+    const src = join(root, srcName);
+    const out = join(pub, outRel);
+    if (!existsSync(src) || (!FORCE && existsSync(out))) return false;
+    let img = sharp(src).rotate();
+    if (opts.extract) img = img.extract(opts.extract(await sharp(src).metadata()));
+    await img
+      .resize(720, 900, { fit: "cover", position: opts.position ?? "north" })
+      .webp({ quality: opts.quality ?? 76 })
+      .toFile(out);
+    console.log(`  tulis ${outRel} (dari ${srcName})`);
+    return true;
+  };
+
+  const heroOut = join(pub, "images/profile/foto-utama.webp");
+  const heroSrc = existsSync(join(root, "fotosayabaru.jpeg")) ? "fotosayabaru.jpeg" : "fotosaya.jpeg";
+  await toWebp(heroSrc, "images/profile/foto-utama.webp", { position: "north" });
+  if (!existsSync(heroOut)) {
     // Tidak ada foto asli → render placeholder SVG ke WebP agar path default tetap valid
     await sharp(
       Buffer.from(
@@ -214,33 +227,20 @@ async function main() {
       ),
     )
       .webp()
-      .toFile(webp);
+      .toFile(heroOut);
     console.log("  tulis images/profile/foto-utama.webp (placeholder)");
   }
 
-  // Foto kartu flip di section Profil (depan: fotosaya2.jpeg, belakang: fotosaya.jpeg)
-  const front = join(root, "fotosaya2.jpeg");
-  const frontOut = join(pub, "images/profile/foto-about.webp");
-  if (existsSync(front) && (FORCE || !existsSync(frontOut))) {
-    const m = await sharp(front).metadata();
-    const h = Math.min(m.height, Math.round(m.width * 1.25));
-    await sharp(front)
-      .rotate()
-      .extract({ left: 0, top: Math.min(90, m.height - h), width: m.width, height: h })
-      .resize(720, 900)
-      .webp({ quality: 78 })
-      .toFile(frontOut);
-    console.log("  tulis images/profile/foto-about.webp (dari fotosaya2.jpeg)");
-  }
-  const backOut = join(pub, "images/profile/foto-about-back.webp");
-  if (existsSync(photo) && (FORCE || !existsSync(backOut))) {
-    await sharp(photo)
-      .rotate()
-      .resize(720, 900, { fit: "cover", position: "attention" })
-      .webp({ quality: 72 })
-      .toFile(backOut);
-    console.log("  tulis images/profile/foto-about-back.webp (dari fotosaya.jpeg)");
-  }
+  // Kartu flip Profil
+  await toWebp("fotosaya.jpeg", "images/profile/foto-about.webp", { position: "north", quality: 78 });
+  await toWebp("fotosaya2.jpeg", "images/profile/foto-about-back.webp", {
+    quality: 74,
+    // fokus ke wajah: buang sedikit langit di atas
+    extract: (m) => {
+      const h = Math.min(m.height, Math.round(m.width * 1.25));
+      return { left: 0, top: Math.min(90, m.height - h), width: m.width, height: h };
+    },
+  });
 
   // Placeholder proyek hanya dibuat jika belum ada gambar sama sekali
   // (ilustrasi proyek dibuat oleh scripts/generate-project-art.mjs dan tidak ditimpa di sini).
