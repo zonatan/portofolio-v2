@@ -1,0 +1,11 @@
+# Akhir baris konsisten (LF) untuk semua file teks
+* text=auto eol=lf
+
+# File biner — jangan diubah
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
+*.woff2 binary

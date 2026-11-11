@@ -1,0 +1,53 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 1003 >>
+stream
+1 1 1 rg 0 0 595 842 re f
+0.545 0.361 0.965 rg 72 790 120 4 re f
+BT
+0.031 0.027 0.051 rg
+/F2 26 Tf 1 0 0 1 72 770 Tm (ZONATAN SIHOMBING) Tj
+/F1 12 Tf 1 0 0 1 72 748 Tm (Web Developer & Computer Vision Enthusiast  -  Manado, Indonesia) Tj
+/F1 11 Tf 1 0 0 1 72 712 Tm (CV PLACEHOLDER - GANTI FILE INI DENGAN CV ASLI KAMU.) Tj
+/F1 11 Tf 1 0 0 1 72 694 Tm (Lokasi file: public/cv/CV-Zonatan-Sihombing.pdf) Tj
+/F2 14 Tf 1 0 0 1 72 650 Tm (PENDIDIKAN) Tj
+/F1 11 Tf 1 0 0 1 72 630 Tm (Teknik Informatika - Universitas Negeri Manado \(UNIMA\)) Tj
+/F2 14 Tf 1 0 0 1 72 590 Tm (PENGALAMAN) Tj
+/F1 11 Tf 1 0 0 1 72 570 Tm (- Magang - Diskominfo Kota Tomohon) Tj
+/F1 11 Tf 1 0 0 1 72 552 Tm (- Peserta Gemastik - TourMind AI) Tj
+/F1 11 Tf 1 0 0 1 72 534 Tm (- Tim STROM - KRTI 2026) Tj
+/F2 14 Tf 1 0 0 1 72 494 Tm (SKILL) Tj
+/F1 11 Tf 1 0 0 1 72 474 Tm (Laravel, Filament, Tailwind, PHP, MySQL, Python, OpenCV, MediaPipe,) Tj
+/F1 11 Tf 1 0 0 1 72 456 Tm (Linux, Nginx, Git, Figma, Unity, Ollama \(LLM lokal\)) Tj
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1451
+%%EOF

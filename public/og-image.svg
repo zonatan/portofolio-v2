@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="g" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#8b5cf6" stroke-opacity="0.12"/>
+    </pattern>
+    <radialGradient id="glow" cx="80%" cy="20%" r="80%">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.45"/>
+      <stop offset="0.45" stop-color="#ff3d9a" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#08070d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#08070d"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#g)"/>
+  <g transform="translate(980 70) scale(3.4)" fill="none" stroke-linecap="square">
+    <path d="M10 2H38L46 10V38L38 46H10L2 38V10Z" stroke="#a78bfa" stroke-opacity="0.6" stroke-width="1.5"/>
+    <path d="M12 15H24L13 33H24" stroke="#c6ff3d" stroke-width="3"/>
+    <path d="M37 15H28V24H36V33H27" stroke="#a78bfa" stroke-width="3"/>
+  </g>
+  <text x="80" y="110" font-family="Consolas, 'Courier New', monospace" font-size="20" letter-spacing="5" fill="#c6ff3d">PLAYER ENTRY // MANADO</text>
+  <text x="80" y="290" font-family="'Arial Narrow', 'Roboto Condensed', Arial, sans-serif" font-weight="700" font-size="150" fill="#f1eefc">ZONATAN</text>
+  <text x="80" y="430" font-family="'Arial Narrow', 'Roboto Condensed', Arial, sans-serif" font-weight="700" font-size="150" fill="#a78bfa">SIHOMBING</text>
+  <text x="80" y="500" font-family="Arial, sans-serif" font-size="30" fill="#a9a3c4">Web Developer · Computer Vision · Server · UI/UX</text>
+  <rect x="80" y="540" width="250" height="40" fill="#c6ff3d"/>
+  <text x="96" y="567" font-family="Consolas, 'Courier New', monospace" font-size="18" font-weight="700" letter-spacing="3" fill="#08070d">OPEN TO WORK</text>
+  <text x="1120" y="567" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="18" letter-spacing="3" fill="#847ea0">1.4748° N, 124.8421° E</text>
+</svg>
