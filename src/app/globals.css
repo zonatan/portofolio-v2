@@ -116,6 +116,52 @@ html.lenis body {
 }
 
 /* ============================================================
+   SCROLLBAR BERTEMA (Chrome/Edge/Safari via ::-webkit-scrollbar, Firefox via scrollbar-color)
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-abyss);
+  border-left: 1px solid rgb(91 63 184 / 0.25);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--color-violet-soft), var(--color-violet-dim));
+  border: 2px solid var(--color-abyss);
+}
+::-webkit-scrollbar-thumb:horizontal {
+  background: linear-gradient(90deg, var(--color-violet-soft), var(--color-violet-dim));
+}
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+  background: var(--color-lime);
+}
+::-webkit-scrollbar-corner {
+  background: var(--color-abyss);
+}
+/* Scrollbar lebih tipis untuk area kecil (mis. grafik kontribusi di HP) */
+.hud-scroll::-webkit-scrollbar {
+  height: 5px;
+  width: 5px;
+}
+.hud-scroll::-webkit-scrollbar-track {
+  background: rgb(16 14 26 / 0.8);
+  border: 0;
+}
+.hud-scroll::-webkit-scrollbar-thumb {
+  border: 0;
+}
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-color: var(--color-violet) var(--color-abyss);
+  }
+  .hud-scroll {
+    scrollbar-width: thin;
+  }
+}
+
+/* ============================================================
    ATMOSFER LATAR: grid + vignette + noise
    ============================================================ */
 .bg-atmosphere {

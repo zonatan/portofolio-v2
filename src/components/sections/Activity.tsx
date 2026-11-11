@@ -94,8 +94,8 @@ function Heatmap({ days }: { days: ContributionDay[] }) {
 
   return (
     <div>
-      <div ref={scrollRef} className="overflow-x-auto pb-2" data-lenis-prevent>
-        <div className="relative min-w-[640px]">
+      <div ref={scrollRef} className="hud-scroll overflow-x-auto pb-2 md:pb-0" data-lenis-prevent>
+        <div className="relative min-w-[600px] md:min-w-0">
           {/* Garis scan menyapu heatmap */}
           <div
             aria-hidden
