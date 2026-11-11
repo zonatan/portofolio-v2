@@ -6,6 +6,7 @@ import { useI18n } from "@/components/providers/LanguageProvider";
 import { Reveal, RevealGroup, RevealItem } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { StatRadar } from "./StatRadar";
 import { TechIcon } from "@/components/ui/TechIcon";
 import { skillGroups } from "@/data/skills";
 import type { Skill } from "@/data/types";
@@ -117,12 +118,19 @@ export function Loadout() {
 
   return (
     <Section id="loadout" bgWord={t.loadout.bg}>
-      <SectionHeading
-        id="loadout"
-        label={t.loadout.label}
-        lines={t.loadout.title}
-        intro={t.loadout.intro}
-      />
+      {/* Header: judul & deskripsi (kiri) + Attribute Radar (kanan) */}
+      <div className="mb-14 grid items-center gap-10 md:mb-16 lg:grid-cols-12 lg:gap-12">
+        <SectionHeading
+          id="loadout"
+          label={t.loadout.label}
+          lines={t.loadout.title}
+          intro={t.loadout.intro}
+          className="mb-0 lg:col-span-7"
+        />
+        <Reveal className="mx-auto w-full max-w-md lg:col-span-5 lg:max-w-none">
+          <StatRadar />
+        </Reveal>
+      </div>
 
       <div className="space-y-10">
         {skillGroups.map((group, gi) => (

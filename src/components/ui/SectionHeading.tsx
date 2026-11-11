@@ -36,7 +36,7 @@ export function SectionHeading({
       initial="hidden"
       whileInView="visible"
       viewport={VIEWPORT}
-      className={cn("mb-12 max-w-3xl md:mb-16", className)}
+      className={cn(!className?.includes("mb-") && "mb-12 md:mb-16", "max-w-3xl", className)}
     >
       <motion.div
         data-reveal

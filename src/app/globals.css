@@ -321,6 +321,16 @@ html.lenis body {
   }
 }
 
+/* Cincin radar atribut berputar pelan */
+.radar-ring {
+  animation: radar-ring 40s linear infinite;
+}
+@keyframes radar-ring {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Marquee */
 .marquee:hover .marquee-track,
 .marquee:focus-within .marquee-track {
@@ -422,7 +432,8 @@ html.boot-skip #boot-loader {
     scroll-behavior: auto !important;
   }
   .marquee-track,
-  .emblem-spin {
+  .emblem-spin,
+  .radar-ring {
     animation: none !important;
   }
 }

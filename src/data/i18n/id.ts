@@ -104,6 +104,12 @@ export const id = {
     },
     level: "LVL",
     levelNames: ["", "Dasar", "Berkembang", "Cakap", "Mahir", "Ahli"],
+    radar: {
+      title: "ATTRIBUTE RADAR",
+      overall: "LVL RATA-RATA",
+      skills: "skill",
+      hint: "Arahkan ke atribut untuk detail.",
+    },
   },
   missions: {
     label: "MISSIONS",

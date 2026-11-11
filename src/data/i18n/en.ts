@@ -106,6 +106,12 @@ export const en: Dictionary = {
     },
     level: "LVL",
     levelNames: ["", "Basic", "Growing", "Capable", "Proficient", "Expert"],
+    radar: {
+      title: "ATTRIBUTE RADAR",
+      overall: "AVERAGE LVL",
+      skills: "skills",
+      hint: "Hover an attribute for details.",
+    },
   },
   missions: {
     label: "MISSIONS",
