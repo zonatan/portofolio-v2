@@ -8,10 +8,9 @@ import { SITE_URL } from "@/lib/utils";
 /**
  * Kartu pratinjau link (WhatsApp, LinkedIn, Discord, X, dll.) — dibuat otomatis saat build
  * dari data profil + foto hero, jadi selalu ikut berubah kalau profil/foto diganti.
+ * Disajikan sebagai JPEG oleh src/app/og-image.jpg/route.ts.
  */
-export const alt = `${profile.name} — Web Developer & Computer Vision`;
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+const size = { width: 1200, height: 630 };
 
 const C = {
   bg: "#08070d",
@@ -25,15 +24,17 @@ const C = {
   ink3: "#6e6889",
 };
 
-const asset = (p: string) => readFile(join(process.cwd(), p));
+// Path dibatasi ke subfolder tertentu agar build tidak men-trace seluruh project
+const font = (f: string) => readFile(join(process.cwd(), "src", "assets", "og", f));
+const publicFile = (f: string) => readFile(join(process.cwd(), "public", f));
 
-export default async function Image() {
+export async function renderOgImage() {
   const [teko, mono, inter, photo] = await Promise.all([
-    asset("src/assets/og/teko-latin-700-normal.woff"),
-    asset("src/assets/og/jetbrains-mono-latin-500-normal.woff"),
-    asset("src/assets/og/inter-latin-500-normal.woff"),
+    font("teko-latin-700-normal.woff"),
+    font("jetbrains-mono-latin-500-normal.woff"),
+    font("inter-latin-500-normal.woff"),
     // Satori tidak membaca WebP → ubah foto ke JPEG
-    asset(`public${profile.photo}`).then((b) =>
+    publicFile(profile.photo.replace(/^\//, "")).then((b) =>
       sharp(b).resize(400, 500, { fit: "cover" }).jpeg({ quality: 82 }).toBuffer(),
     ),
   ]);

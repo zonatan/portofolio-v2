@@ -55,12 +55,14 @@ export const metadata: Metadata = {
     siteName: `${profile.name} — Portofolio`,
     title: dict.meta.title,
     description: dict.meta.description,
-    // Gambar pratinjau dibuat otomatis oleh src/app/opengraph-image.tsx
+    // Gambar pratinjau dibuat otomatis oleh src/app/og-image.jpg/route.ts
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, type: "image/jpeg", alt: `${profile.name} — Web Developer & Computer Vision` }],
   },
   twitter: {
     card: "summary_large_image",
     title: dict.meta.title,
     description: dict.meta.description,
+    images: ["/og-image.jpg"],
   },
   robots: { index: true, follow: true },
 };

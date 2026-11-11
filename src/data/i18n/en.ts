@@ -5,7 +5,7 @@ export const en: Dictionary = {
   meta: {
     title: "Zonatan Sihombing — Web Developer & Computer Vision",
     description:
-      "Portfolio of Zonatan Sihombing, Informatics Engineering student at UNIMA. Web development (Laravel, Filament), computer vision (Python), server/VPS, UI/UX, and AI integration.",
+      "Portfolio of Zonatan Sihombing, Informatics student at UNIMA: web (Laravel, Filament), computer vision (Python), server/VPS, UI/UX, and AI integration.",
   },
   a11y: {
     skip: "Skip to content",

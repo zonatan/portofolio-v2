@@ -3,7 +3,7 @@ export const id = {
   meta: {
     title: "Zonatan Sihombing — Web Developer & Computer Vision",
     description:
-      "Portofolio Zonatan Sihombing, mahasiswa Teknik Informatika UNIMA. Web development (Laravel, Filament), computer vision (Python), server/VPS, UI/UX, dan integrasi AI.",
+      "Portofolio Zonatan Sihombing, mahasiswa Informatika UNIMA: web (Laravel, Filament), computer vision (Python), server/VPS, UI/UX, dan integrasi AI.",
   },
   a11y: {
     skip: "Lewati ke konten",
