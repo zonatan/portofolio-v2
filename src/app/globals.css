@@ -76,7 +76,7 @@
       font-size: 90%;
     }
   }
-  html:not(.lenis) {
+  html {
     scroll-behavior: smooth;
   }
   body {
@@ -101,18 +101,6 @@
   [role="button"] {
     cursor: pointer;
   }
-}
-
-/* Lenis */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis:not(.lenis-autoToggle).lenis-stopped {
-  overflow: clip;
-}
-.lenis [data-lenis-prevent] {
-  overscroll-behavior: contain;
 }
 
 /* ============================================================
@@ -162,9 +150,21 @@ html.lenis body {
 }
 
 /* ============================================================
+   PERFORMA
+   ============================================================ */
+/* Animasi CSS berhenti saat section-nya di luar layar (diatur useAnimPause) */
+[data-anim="off"] *,
+[data-anim="off"] *::before,
+[data-anim="off"] *::after {
+  animation-play-state: paused !important;
+}
+
+/* ============================================================
    ATMOSFER LATAR: grid + vignette + noise
    ============================================================ */
 .bg-atmosphere {
+  /* layer GPU sendiri: tidak digambar ulang saat scroll */
+  will-change: transform;
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -191,6 +191,7 @@ html.lenis body {
   background: radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / 0.65) 100%);
 }
 .bg-noise {
+  will-change: transform;
   position: fixed;
   inset: 0;
   z-index: 60;
@@ -386,18 +387,6 @@ html.lenis body {
 }
 
 /* ===== Animasi section Aktivitas ===== */
-/* Sinar berjalan menyusuri border panel */
-.beam-dash {
-  animation: beam-dash 7s linear infinite;
-}
-@keyframes beam-dash {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: -1000;
-  }
-}
 /* Border avatar berputar */
 .spin-slow {
   animation: spin-slow 4s linear infinite;
@@ -426,7 +415,12 @@ html.lenis body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 0.16) 50%, transparent 65%);
+  background: linear-gradient(
+    110deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.16) 50%,
+    transparent 65%
+  );
   transform: translateX(-130%);
   animation: trophy-shine 5s ease-in-out infinite;
   animation-delay: var(--d, 0s);
@@ -440,15 +434,13 @@ html.lenis body {
     transform: translateX(130%);
   }
 }
-/* Rank S berdenyut */
+/* Rank S berdenyut (transform → diproses GPU) */
 .rank-pulse {
   animation: rank-pulse 2.4s ease-in-out infinite;
 }
 @keyframes rank-pulse {
   50% {
-    text-shadow:
-      0 0 26px rgb(198 255 61 / 0.95),
-      0 0 4px rgb(198 255 61 / 0.9);
+    transform: scale(1.12);
   }
 }
 /* Badge achievement melayang */
@@ -463,79 +455,75 @@ html.lenis body {
 }
 
 /* ===== Animasi foto ===== */
-/* Glitch digital: irisan foto bergeser sekejap tiap ~7 detik */
+/* Glitch digital: dipicu JS (kelas .glitching ~0,36 detik tiap ~7 detik) */
 .glitch-a,
 .glitch-b {
   opacity: 0;
   mix-blend-mode: screen;
-  animation: glitch-a 7s steps(1, end) infinite;
-  animation-delay: var(--d, 0s);
+  visibility: hidden;
 }
 .glitch-a {
   filter: hue-rotate(75deg) saturate(1.8) brightness(1.1);
 }
 .glitch-b {
   filter: hue-rotate(-70deg) saturate(1.8) brightness(1.1);
+}
+.glitching .glitch-a,
+.glitching .glitch-b {
+  visibility: visible;
+  animation: glitch-a 0.36s steps(1, end) 1;
+}
+.glitching .glitch-b {
   animation-name: glitch-b;
 }
 @keyframes glitch-a {
   0% {
-    opacity: 0;
-    clip-path: inset(0 0 100% 0);
-    transform: none;
-  }
-  90% {
     opacity: 0.75;
     clip-path: inset(12% 0 70% 0);
     transform: translateX(-10px);
   }
-  91% {
+  25% {
+    opacity: 0.75;
     clip-path: inset(56% 0 24% 0);
     transform: translateX(9px);
   }
-  92% {
+  50% {
+    opacity: 0.75;
     clip-path: inset(34% 0 50% 0);
     transform: translateX(-6px);
   }
-  93% {
+  75% {
+    opacity: 0.75;
     clip-path: inset(80% 0 6% 0);
     transform: translateX(5px);
   }
-  94%,
   100% {
     opacity: 0;
-    clip-path: inset(0 0 100% 0);
-    transform: none;
   }
 }
 @keyframes glitch-b {
   0% {
-    opacity: 0;
-    clip-path: inset(0 0 100% 0);
-    transform: none;
-  }
-  90% {
     opacity: 0.7;
     clip-path: inset(44% 0 38% 0);
     transform: translateX(8px);
   }
-  91% {
+  25% {
+    opacity: 0.7;
     clip-path: inset(8% 0 80% 0);
     transform: translateX(-7px);
   }
-  92% {
+  50% {
+    opacity: 0.7;
     clip-path: inset(66% 0 14% 0);
     transform: translateX(10px);
   }
-  93% {
+  75% {
+    opacity: 0.7;
     clip-path: inset(22% 0 62% 0);
     transform: translateX(-4px);
   }
-  94%,
   100% {
     opacity: 0;
-    clip-path: inset(0 0 100% 0);
-    transform: none;
   }
 }
 /* Garis scan berulang di foto */
@@ -588,6 +576,22 @@ html.lenis body {
 }
 
 /* Marquee */
+/* Animasi transform/opacity: siapkan layer GPU sejak awal (tidak di-raster ulang) */
+.photo-scan,
+.photo-shine,
+.hm-scan,
+.spin-slow,
+.badge-float,
+.radar-ring,
+.rank-pulse,
+.trophy-shine::after {
+  will-change: transform, opacity;
+}
+
+/* Ticker: area sendiri agar animasinya tidak memicu gambar ulang di luar pita */
+.marquee {
+  contain: layout paint;
+}
 .marquee:hover .marquee-track,
 .marquee:focus-within .marquee-track {
   animation-play-state: paused;
@@ -690,7 +694,6 @@ html.boot-skip #boot-loader {
   .marquee-track,
   .emblem-spin,
   .radar-ring,
-  .beam-dash,
   .spin-slow,
   .hm-scan,
   .trophy-shine::after,

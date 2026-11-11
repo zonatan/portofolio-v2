@@ -66,3 +66,23 @@ export function useElementVisible(id: string, rootMargin = "0px") {
   }, [id, rootMargin]);
   return visible;
 }
+
+/**
+ * Menjeda semua animasi CSS di dalam elemen saat elemen di luar layar
+ * (set atribut `data-anim="off"` → lihat globals.css). Tanpa re-render React.
+ */
+export function useAnimPause(ref: React.RefObject<HTMLElement | null>, margin = "200px") {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) el.removeAttribute("data-anim");
+        else el.setAttribute("data-anim", "off");
+      },
+      { rootMargin: margin },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref, margin]);
+}

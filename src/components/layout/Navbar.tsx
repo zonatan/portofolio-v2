@@ -4,7 +4,6 @@ import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/providers/LanguageProvider";
-import { getLenis } from "@/components/providers/SmoothScroll";
 import { Button } from "@/components/ui/Button";
 import { Emblem3D } from "@/components/ui/Emblem3D";
 import { profile } from "@/data/profile";
@@ -67,8 +66,6 @@ export function Navbar() {
   // Menu mobile: kunci scroll, Esc menutup, fokus masuk ke menu.
   useEffect(() => {
     if (!open) return;
-    const lenis = getLenis();
-    lenis?.stop();
     document.body.style.overflow = "hidden";
     const first = menuRef.current?.querySelector<HTMLElement>("a,button");
     first?.focus();
@@ -80,7 +77,6 @@ export function Navbar() {
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      lenis?.start();
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKey);
     };
@@ -99,7 +95,7 @@ export function Navbar() {
         className={cn(
           "fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color] duration-300",
           scrolled || open
-            ? "border-violet-dim/30 bg-abyss/75 backdrop-blur-md"
+            ? "border-violet-dim/30 bg-abyss/92"
             : "border-transparent bg-transparent",
         )}
       >

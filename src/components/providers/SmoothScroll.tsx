@@ -1,52 +1,26 @@
 "use client";
 
-import Lenis from "lenis";
 import { useEffect } from "react";
 
-let instance: Lenis | null = null;
+/**
+ * Scroll memakai scroll bawaan browser (bukan library smooth-scroll seperti Lenis).
+ * Scroll bawaan diproses di thread compositor, terpisah dari JavaScript — jadi tetap
+ * mulus walaupun halaman sedang sibuk menjalankan animasi.
+ */
 
-/** Akses instance Lenis (null jika reduced-motion / belum siap). */
-export const getLenis = () => instance;
-
-/** Scroll ke elemen/posisi — memakai Lenis jika aktif, jika tidak pakai scroll native. */
+/** Scroll halus ke elemen (selector) atau posisi (px). */
 export function scrollToTarget(target: string | number) {
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (instance) {
-    instance.start();
-    instance.scrollTo(target, {
-      duration: 1.1,
-      force: true,
-    });
-    return;
-  }
+  const behavior: ScrollBehavior = reduced ? "auto" : "smooth";
   if (typeof target === "number") {
-    window.scrollTo({ top: target, behavior: reduced ? "auto" : "smooth" });
+    window.scrollTo({ top: target, behavior });
   } else {
-    document.querySelector(target)?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+    document.querySelector(target)?.scrollIntoView({ behavior });
   }
 }
 
 export function SmoothScroll() {
   useEffect(() => {
-    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let raf = 0;
-
-    const start = () => {
-      if (instance || mql.matches) return;
-      instance = new Lenis({ lerp: 0.12, wheelMultiplier: 1 });
-      const loop = (time: number) => {
-        instance?.raf(time);
-        raf = requestAnimationFrame(loop);
-      };
-      raf = requestAnimationFrame(loop);
-    };
-    const stop = () => {
-      cancelAnimationFrame(raf);
-      instance?.destroy();
-      instance = null;
-    };
-    const onChange = () => (mql.matches ? stop() : start());
-
     // Klik link internal (#section): scroll halus + pindahkan fokus untuk pengguna keyboard.
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey) return;
@@ -64,14 +38,8 @@ export function SmoothScroll() {
     };
 
     document.documentElement.classList.add("hydrated");
-    start();
-    mql.addEventListener("change", onChange);
     document.addEventListener("click", onClick);
-    return () => {
-      mql.removeEventListener("change", onChange);
-      document.removeEventListener("click", onClick);
-      stop();
-    };
+    return () => document.removeEventListener("click", onClick);
   }, []);
 
   return null;

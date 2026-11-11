@@ -3,7 +3,7 @@
 import { ArrowDown, Download } from "lucide-react";
 import Image from "next/image";
 import { motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useI18n } from "@/components/providers/LanguageProvider";
 import { ScrambleText, Typewriter } from "@/components/ui/AnimatedText";
 import { Button } from "@/components/ui/Button";
@@ -13,7 +13,7 @@ import { PhotoFX } from "@/components/ui/PhotoFX";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { profile } from "@/data/profile";
-import { useBootDone, useFinePointer, usePrefersReducedMotion } from "@/lib/hooks";
+import { useAnimPause, useBootDone, useFinePointer, usePrefersReducedMotion } from "@/lib/hooks";
 import { EASE, revealVariants, staggerContainer } from "@/lib/motion";
 import { BLUR_DATA_URL } from "@/lib/utils";
 
@@ -39,6 +39,10 @@ export function Hero() {
   const gridMx = useTransform(mx, (v) => v * 5);
   const gridMy = useTransform(my, (v) => v * 5);
 
+  // Jeda animasi CSS & parallax mouse saat hero di luar layar
+  const sectionRef = useRef<HTMLElement>(null);
+  useAnimPause(sectionRef);
+
   useEffect(() => {
     if (!fine) {
       mx.set(0);
@@ -46,6 +50,7 @@ export function Hero() {
       return;
     }
     const onMove = (e: PointerEvent) => {
+      if (sectionRef.current?.hasAttribute("data-anim")) return;
       mx.set((e.clientX / window.innerWidth) * 2 - 1);
       my.set((e.clientY / window.innerHeight) * 2 - 1);
     };
@@ -57,6 +62,7 @@ export function Hero() {
 
   return (
     <section
+      ref={sectionRef}
       id="beranda"
       data-sector="beranda"
       className="relative flex min-h-[100svh] items-center overflow-hidden pt-24 pb-20 md:pt-28"
@@ -65,11 +71,11 @@ export function Hero() {
       <motion.div
         aria-hidden
         style={still ? undefined : { y: gridY, x: gridMx }}
-        className="pointer-events-none absolute -inset-10"
+        className="pointer-events-none absolute -inset-10 will-change-transform"
       >
         <motion.div
           style={still ? undefined : { y: gridMy }}
-          className="h-full w-full bg-[linear-gradient(rgb(139_92_246/0.09)_1px,transparent_1px),linear-gradient(90deg,rgb(139_92_246/0.09)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_70%_60%_at_60%_40%,#000,transparent)] bg-[size:88px_88px]"
+          className="h-full w-full bg-[linear-gradient(rgb(139_92_246/0.09)_1px,transparent_1px),linear-gradient(90deg,rgb(139_92_246/0.09)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_70%_60%_at_60%_40%,#000,transparent)] bg-[size:88px_88px] will-change-transform"
         />
       </motion.div>
 
@@ -77,7 +83,7 @@ export function Hero() {
       <motion.div
         aria-hidden
         style={still ? undefined : { y: wordY, x: wordMx }}
-        className="text-stroke font-display pointer-events-none absolute right-[-4vw] bottom-[6vh] text-[34vw] leading-none font-bold uppercase select-none md:text-[22vw]"
+        className="text-stroke font-display pointer-events-none absolute right-[-4vw] bottom-[6vh] text-[34vw] leading-none font-bold uppercase will-change-transform select-none md:text-[22vw]"
       >
         PLAYER
       </motion.div>
@@ -176,8 +182,11 @@ export function Hero() {
 
         {/* Kanan: foto dalam bingkai HUD */}
         <div className="order-1 mx-auto w-full max-w-[15rem] sm:max-w-xs lg:order-2 lg:col-span-5 lg:max-w-none lg:pl-6">
-          <motion.div style={still ? undefined : { y: photoY }}>
-            <motion.div style={still ? undefined : { x: photoMx, y: photoMy }} className="relative">
+          <motion.div style={still ? undefined : { y: photoY }} className="will-change-transform">
+            <motion.div
+              style={still ? undefined : { x: photoMx, y: photoMy }}
+              className="relative will-change-transform"
+            >
               {/* Glow bernapas di belakang foto */}
               <div
                 aria-hidden
@@ -188,7 +197,7 @@ export function Hero() {
               <div className="relative p-3">
                 <CornerBrackets active={booted} size="h-8 w-8" color="border-lime" delay={0.1} />
 
-                <div className="clip-corner bg-raised relative aspect-[4/5] overflow-hidden">
+                <div className="clip-corner bg-raised relative z-[1] aspect-[4/5] overflow-hidden">
                   <Image
                     src={profile.photo}
                     alt={t.hero.photoAlt}

@@ -26,13 +26,12 @@ export const transition = {
   layout: { type: "spring", stiffness: 380, damping: 34 } satisfies Transition,
 };
 
-/** Fade + naik 24px + blur → tajam. */
+/** Fade + naik 24px (tanpa filter blur — filter mahal saat scroll). */
 export const revealVariants: Variants = {
-  hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
+  hidden: { opacity: 0, y: 24 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: transition.reveal,
   },
 };

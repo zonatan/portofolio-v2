@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "motion/react";
-import { usePrefersReducedMotion } from "@/lib/hooks";
+import { useAnimPause, usePrefersReducedMotion } from "@/lib/hooks";
 import { useRef } from "react";
 import type { SectionId } from "@/data/sections";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ function BgWord({ word, target }: { word: string; target: React.RefObject<HTMLEl
     <motion.div
       aria-hidden
       style={reduced ? undefined : { x }}
-      className="text-stroke font-display pointer-events-none absolute -top-4 left-0 text-[28vw] leading-none font-bold whitespace-nowrap uppercase select-none md:-top-10 md:text-[18vw]"
+      className="text-stroke font-display pointer-events-none absolute will-change-transform -top-4 left-0 text-[28vw] leading-none font-bold whitespace-nowrap uppercase select-none md:-top-10 md:text-[18vw]"
     >
       {word}
     </motion.div>
@@ -36,6 +36,7 @@ export function Section({
   innerClassName?: string;
 }) {
   const ref = useRef<HTMLElement>(null);
+  useAnimPause(ref);
   return (
     <section
       id={id}

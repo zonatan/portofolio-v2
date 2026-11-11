@@ -58,108 +58,113 @@ export function StatRadar() {
         ))}
       </ul>
 
-      <svg viewBox="-44 0 408 300" className="mx-auto mt-2 block w-full max-w-[24rem]" aria-hidden>
-        {/* cincin putus-putus berputar pelan */}
-        <g
-          className="radar-ring"
-          style={{ transformOrigin: `${CX}px ${CY}px`, transformBox: "view-box" }}
+      <div className="relative mx-auto mt-2 w-full max-w-[24rem]">
+        {/* Cincin putus-putus berputar pelan — lapisan HTML terpisah agar putarannya
+            diproses GPU (animasi pada elemen di dalam SVG selalu digambar ulang CPU) */}
+        <div
+          aria-hidden
+          className="radar-ring pointer-events-none absolute inset-0"
+          style={{ transformOrigin: `${((CX + 44) / 408) * 100}% ${(CY / 300) * 100}%` }}
         >
-          <circle
-            cx={CX}
-            cy={CY}
-            r={R + 18}
-            fill="none"
-            stroke="rgb(139 92 246 / 0.3)"
-            strokeDasharray="2 8"
-          />
-        </g>
-
-        {/* grid level 1–5 */}
-        {[1, 2, 3, 4, 5].map((l) => (
-          <polygon
-            key={l}
-            points={poly(stats.map((_, i) => pt(i, (R * l) / 5, n)))}
-            fill={l === 5 ? "rgb(24 21 42 / 0.6)" : "none"}
-            stroke={l === 5 ? "rgb(139 92 246 / 0.45)" : "rgb(139 92 246 / 0.16)"}
-            strokeWidth={1}
-          />
-        ))}
-        {/* sumbu */}
-        {stats.map((_, i) => {
-          const [x, y] = pt(i, R, n);
-          return (
-            <line
-              key={i}
-              x1={CX}
-              y1={CY}
-              x2={x}
-              y2={y}
-              stroke={active === i ? "#c6ff3d" : "rgb(139 92 246 / 0.25)"}
-              strokeWidth={active === i ? 1.5 : 1}
+          <svg viewBox="-44 0 408 300" className="block h-full w-full">
+            <circle
+              cx={CX}
+              cy={CY}
+              r={R + 18}
+              fill="none"
+              stroke="rgb(139 92 246 / 0.3)"
+              strokeDasharray="2 8"
             />
-          );
-        })}
-
-        {/* area data: tumbuh dari tengah saat terlihat */}
-        <motion.polygon
-          points={poly(dataPts)}
-          fill="rgb(139 92 246 / 0.28)"
-          stroke="#a78bfa"
-          strokeWidth={2}
-          strokeLinejoin="round"
-          style={{ transformOrigin: `${CX}px ${CY}px`, transformBox: "view-box" }}
-          initial={{ scale: 0, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: 1 }}
-          viewport={VIEWPORT}
-          transition={{ duration: 0.8, ease: EASE, delay: 0.15 }}
-        />
-
-        {/* titik nilai + label */}
-        {stats.map((s, i) => {
-          const [x, y] = dataPts[i];
-          const [lx, ly] = pt(i, R + 34, n);
-          const anchor = Math.abs(lx - CX) < 6 ? "middle" : lx > CX ? "start" : "end";
-          const on = active === i;
-          return (
-            <g key={s.key}>
-              <motion.circle
-                cx={x}
-                cy={y}
-                r={on ? 6 : 4}
-                fill={on ? "#c6ff3d" : "#f1eefc"}
-                stroke="#08070d"
-                strokeWidth={2}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={VIEWPORT}
-                transition={{ duration: 0.3, delay: 0.7 + i * 0.08 }}
+          </svg>
+        </div>
+        <svg viewBox="-44 0 408 300" className="relative block w-full" aria-hidden>
+          {/* grid level 1–5 */}
+          {[1, 2, 3, 4, 5].map((l) => (
+            <polygon
+              key={l}
+              points={poly(stats.map((_, i) => pt(i, (R * l) / 5, n)))}
+              fill={l === 5 ? "rgb(24 21 42 / 0.6)" : "none"}
+              stroke={l === 5 ? "rgb(139 92 246 / 0.45)" : "rgb(139 92 246 / 0.16)"}
+              strokeWidth={1}
+            />
+          ))}
+          {/* sumbu */}
+          {stats.map((_, i) => {
+            const [x, y] = pt(i, R, n);
+            return (
+              <line
+                key={i}
+                x1={CX}
+                y1={CY}
+                x2={x}
+                y2={y}
+                stroke={active === i ? "#c6ff3d" : "rgb(139 92 246 / 0.25)"}
+                strokeWidth={active === i ? 1.5 : 1}
               />
-              <text
-                x={lx}
-                y={ly - 4}
-                textAnchor={anchor}
-                fontSize="10"
-                fontFamily="var(--font-jetbrains), monospace"
-                letterSpacing="1.5"
-                fill={on ? "#c6ff3d" : "#a9a3c4"}
-              >
-                {s.label.toUpperCase()}
-              </text>
-              <text
-                x={lx}
-                y={ly + 12}
-                textAnchor={anchor}
-                fontSize="15"
-                fontWeight="700"
-                fontFamily="var(--font-teko), sans-serif"
-                fill={on ? "#c6ff3d" : "#f1eefc"}
-              >
-                {s.value.toFixed(1)}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+            );
+          })}
+
+          {/* area data: tumbuh dari tengah saat terlihat */}
+          <motion.polygon
+            points={poly(dataPts)}
+            fill="rgb(139 92 246 / 0.28)"
+            stroke="#a78bfa"
+            strokeWidth={2}
+            strokeLinejoin="round"
+            style={{ transformOrigin: `${CX}px ${CY}px`, transformBox: "view-box" }}
+            initial={{ scale: 0, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={VIEWPORT}
+            transition={{ duration: 0.8, ease: EASE, delay: 0.15 }}
+          />
+
+          {/* titik nilai + label */}
+          {stats.map((s, i) => {
+            const [x, y] = dataPts[i];
+            const [lx, ly] = pt(i, R + 34, n);
+            const anchor = Math.abs(lx - CX) < 6 ? "middle" : lx > CX ? "start" : "end";
+            const on = active === i;
+            return (
+              <g key={s.key}>
+                <motion.circle
+                  cx={x}
+                  cy={y}
+                  r={on ? 6 : 4}
+                  fill={on ? "#c6ff3d" : "#f1eefc"}
+                  stroke="#08070d"
+                  strokeWidth={2}
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={VIEWPORT}
+                  transition={{ duration: 0.3, delay: 0.7 + i * 0.08 }}
+                />
+                <text
+                  x={lx}
+                  y={ly - 4}
+                  textAnchor={anchor}
+                  fontSize="10"
+                  fontFamily="var(--font-jetbrains), monospace"
+                  letterSpacing="1.5"
+                  fill={on ? "#c6ff3d" : "#a9a3c4"}
+                >
+                  {s.label.toUpperCase()}
+                </text>
+                <text
+                  x={lx}
+                  y={ly + 12}
+                  textAnchor={anchor}
+                  fontSize="15"
+                  fontWeight="700"
+                  fontFamily="var(--font-teko), sans-serif"
+                  fill={on ? "#c6ff3d" : "#f1eefc"}
+                >
+                  {s.value.toFixed(1)}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
 
       {/* Legend interaktif (hover / fokus untuk menyorot atribut) */}
       <div className="mt-3 flex flex-wrap justify-center gap-1.5">

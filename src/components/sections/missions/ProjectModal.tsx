@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "@/components/providers/LanguageProvider";
-import { getLenis } from "@/components/providers/SmoothScroll";
 import { Button } from "@/components/ui/Button";
 import { CornerBrackets } from "@/components/ui/CornerBrackets";
 import { StatusChip } from "@/components/ui/StatusChip";
@@ -50,8 +49,6 @@ export function ProjectModal({ project, onClose }: { project: Project; onClose: 
 
   // Kunci scroll, Esc menutup, focus trap.
   useEffect(() => {
-    const lenis = getLenis();
-    lenis?.stop();
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     panelRef.current?.querySelector<HTMLElement>("[data-autofocus]")?.focus();
@@ -81,7 +78,6 @@ export function ProjectModal({ project, onClose }: { project: Project; onClose: 
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
-      lenis?.start();
     };
   }, [onClose]);
 
@@ -106,7 +102,6 @@ export function ProjectModal({ project, onClose }: { project: Project; onClose: 
         initial="hidden"
         animate="visible"
         exit="exit"
-        data-lenis-prevent
         className="hud-panel clip-corner bg-surface relative max-h-[92svh] w-full max-w-4xl overflow-y-auto overscroll-contain"
       >
         {/* Header bar */}

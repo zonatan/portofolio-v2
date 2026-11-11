@@ -5,7 +5,6 @@ import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "@/components/providers/LanguageProvider";
-import { getLenis } from "@/components/providers/SmoothScroll";
 import { Button } from "@/components/ui/Button";
 import { EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -44,8 +43,6 @@ export function QuoteEditor({
 
   // Kunci scroll, Esc menutup, fokus ke input pertama
   useEffect(() => {
-    const lenis = getLenis();
-    lenis?.stop();
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -53,7 +50,6 @@ export function QuoteEditor({
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
-      lenis?.start();
     };
   }, [onClose]);
 
@@ -133,7 +129,6 @@ export function QuoteEditor({
         initial={{ opacity: 0, y: 20, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.35, ease: EASE }}
-        data-lenis-prevent
         className="hud-panel clip-corner bg-surface relative w-full max-w-md p-6"
       >
         <button

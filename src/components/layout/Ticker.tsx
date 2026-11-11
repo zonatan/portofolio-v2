@@ -1,7 +1,13 @@
-import { tickerItems } from "@/data/profile";
+"use client";
 
-/** Ticker tech stack yang berjalan terus; berhenti saat di-hover. */
+import { useRef } from "react";
+import { tickerItems } from "@/data/profile";
+import { useAnimPause } from "@/lib/hooks";
+
+/** Ticker tech stack yang berjalan terus; berhenti saat di-hover & saat di luar layar. */
 export function Ticker() {
+  const ref = useRef<HTMLDivElement>(null);
+  useAnimPause(ref, "100px");
   const row = (hidden: boolean) => (
     <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-center">
       {tickerItems.map((item) => (
@@ -16,10 +22,13 @@ export function Ticker() {
     </ul>
   );
   return (
-    <div className="marquee border-violet-dim/30 bg-surface/60 relative overflow-hidden border-y py-3">
+    <div
+      ref={ref}
+      className="marquee border-violet-dim/30 bg-surface/60 relative overflow-hidden border-y py-3"
+    >
       <div className="from-abyss pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-linear-to-r to-transparent" />
       <div className="from-abyss pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-linear-to-l to-transparent" />
-      <div className="marquee-track animate-marquee flex w-max">
+      <div className="marquee-track animate-marquee flex w-max will-change-transform">
         {row(false)}
         {row(true)}
       </div>
