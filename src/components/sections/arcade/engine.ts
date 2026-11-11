@@ -1,6 +1,10 @@
 /**
  * BUG HUNTER — mini-game shooter 2D orisinal (canvas, tanpa library).
  * Pemain: pesawat bermotif monogram ZS. Musuh: "bug" pixel yang turun bergelombang.
+ *
+ * v2: kesulitan naik bertahap, 6 buff yang dijatuhkan bug, combo (pengali skor s/d ×4),
+ *     senjata naik level di wave 3 & 6, dan boss "KERNEL PANIC" tiap 5 wave.
+ *     Jika aturan skor diubah, sesuaikan juga maxScoreFor() di src/lib/server/leaderboard.ts.
  */
 
 const COL = {
@@ -58,6 +62,28 @@ const BIG_B = [
 ];
 const LABELS = ["404", "NULL", "NaN", "CORS", "500", "LEAK", "SEGV", "undef"];
 
+/** Buff yang bisa dijatuhkan bug. Nama & warna dipakai juga oleh legenda di Arcade.tsx. */
+export const BUFFS = {
+  spread: { tag: "MT", name: "MULTI-THREAD", color: "#c6ff3d" },
+  rapid: { tag: "OC", name: "OVERCLOCK", color: "#ffc53d" },
+  shield: { tag: "FW", name: "FIREWALL", color: "#3dd6ff" },
+  heal: { tag: "+1", name: "PATCH", color: "#ff6b8b" },
+  slow: { tag: "DB", name: "DEBUG MODE", color: "#a78bfa" },
+  bomb: { tag: "HF", name: "HOTFIX", color: "#f1eefc" },
+} as const;
+export type BuffKind = keyof typeof BUFFS;
+const DROP_WEIGHTS: [BuffKind, number][] = [
+  ["spread", 24],
+  ["rapid", 24],
+  ["shield", 20],
+  ["heal", 12],
+  ["slow", 13],
+  ["bomb", 7],
+];
+
+const MAX_LIVES = 5;
+const BOSS_EVERY = 5;
+
 type Enemy = {
   x: number;
   y: number;
@@ -67,13 +93,18 @@ type Enemy = {
   freq: number;
   speed: number;
   hp: number;
+  maxHp: number;
   big: boolean;
+  boss: boolean;
+  fireT: number;
   w: number;
   h: number;
   label: string;
   flash: number;
 };
-type Bullet = { x: number; y: number; vy: number; enemy: boolean };
+type Bullet = { x: number; y: number; vx: number; vy: number; enemy: boolean };
+type Drop = { x: number; y: number; kind: BuffKind; t: number };
+type Toast = { text: string; color: string; t: number };
 type Particle = {
   x: number;
   y: number;
@@ -88,7 +119,7 @@ type Star = { x: number; y: number; z: number };
 
 export type GameCallbacks = {
   onHud: (score: number, wave: number, lives: number) => void;
-  onOver: (score: number) => void;
+  onOver: (score: number, wave: number) => void;
 };
 
 export function createGame(
@@ -111,19 +142,29 @@ export function createGame(
   let cooldown = 0;
   let invuln = 0;
   let shake = 0;
+  let flash = 0;
   let score = 0;
   let lives = 3;
   let wave = 1;
   let toSpawn = 0;
   let spawnTimer = 0;
   let waveBanner = 0;
+  let combo = 0;
+  let comboT = 0;
+  let shield = 0;
+  let buffs = { spread: 0, rapid: 0, slow: 0 };
   let enemies: Enemy[] = [];
   let bullets: Bullet[] = [];
+  let drops: Drop[] = [];
+  let toasts: Toast[] = [];
   let particles: Particle[] = [];
   let stars: Star[] = [];
   let animT = 0;
 
   const scale = () => Math.max(0.7, Math.min(1.25, W / 800)); // ukuran sprite relatif lebar
+  const isBossWave = () => wave % BOSS_EVERY === 0;
+  const multiplier = () => Math.min(4, 1 + Math.floor(combo / 8));
+  const slowF = () => (buffs.slow > 0 ? 0.5 : 1);
 
   function resize() {
     const r = canvas.getBoundingClientRect();
@@ -148,8 +189,15 @@ export function createGame(
     score = 0;
     lives = 3;
     wave = 1;
+    combo = 0;
+    comboT = 0;
+    shield = 0;
+    flash = 0;
+    buffs = { spread: 0, rapid: 0, slow: 0 };
     enemies = [];
     bullets = [];
+    drops = [];
+    toasts = [];
     particles = [];
     px = targetX = W / 2;
     invuln = 1.2;
@@ -158,30 +206,65 @@ export function createGame(
   }
 
   function startWave() {
-    toSpawn = 6 + wave * 3;
-    spawnTimer = 0.4;
-    waveBanner = 1.6;
+    if (isBossWave()) {
+      toSpawn = 3 + wave;
+      spawnBoss();
+    } else {
+      toSpawn = 5 + wave * 3;
+    }
+    spawnTimer = 0.6;
+    waveBanner = 1.8;
   }
 
   function spawn() {
     const s = scale();
-    const big = wave >= 2 && Math.random() < Math.min(0.12 + wave * 0.03, 0.35);
+    const big = wave >= 2 && Math.random() < Math.min(0.1 + wave * 0.03, 0.35);
     const w = (big ? 10 : 8) * 4 * s;
     const h = 8 * 4 * s;
     const baseX = w + Math.random() * (W - w * 2);
+    // Wave awal: goyangan kecil & lambat supaya mudah dibidik
+    const ease = Math.min(1, 0.45 + wave * 0.15);
     enemies.push({
       x: baseX,
       y: -h,
       baseX,
       t: Math.random() * 6,
-      amp: 20 + Math.random() * 50 * s,
-      freq: 1 + Math.random() * 1.5,
-      speed: (big ? 34 : 48) + wave * 7 + Math.random() * 18,
+      amp: (14 + Math.random() * 40 * s) * ease,
+      freq: 1 + Math.random() * 1.4,
+      speed: (big ? 30 : 40) + (wave - 1) * 6 + Math.random() * 14,
       hp: big ? 3 : 1,
+      maxHp: big ? 3 : 1,
       big,
+      boss: false,
+      fireT: 0,
       w,
       h,
       label: LABELS[(Math.random() * LABELS.length) | 0],
+      flash: 0,
+    });
+  }
+
+  function spawnBoss() {
+    const s = scale();
+    const w = 10 * 4 * s * 2;
+    const h = 8 * 4 * s * 2;
+    const hp = 26 + wave * 3;
+    enemies.push({
+      x: W / 2,
+      y: -h,
+      baseX: W / 2,
+      t: 0,
+      amp: Math.max(40, W / 2 - w),
+      freq: 0.55,
+      speed: 46,
+      hp,
+      maxHp: hp,
+      big: true,
+      boss: true,
+      fireT: 2,
+      w,
+      h,
+      label: "KERNEL PANIC",
       flash: 0,
     });
   }
@@ -203,9 +286,74 @@ export function createGame(
     }
   }
 
+  function toast(text: string, color: string) {
+    toasts.push({ text, color, t: 1.4 });
+    if (toasts.length > 3) toasts.shift();
+  }
+
+  function pickDrop(): BuffKind {
+    const pool = DROP_WEIGHTS.filter(([k]) => k !== "heal" || lives < MAX_LIVES);
+    let r = Math.random() * pool.reduce((n, [, w]) => n + w, 0);
+    for (const [k, w] of pool) if ((r -= w) <= 0) return k;
+    return "spread";
+  }
+
+  function killEnemy(e: Enemy) {
+    e.hp = 0;
+    combo += 1;
+    comboT = 2.2;
+    score += (e.boss ? 250 : e.big ? 30 : 10) * multiplier();
+    burst(e.x, e.y, e.boss || e.big ? COL.magenta : COL.violetSoft, e.boss ? 70 : e.big ? 30 : 16);
+    burst(e.x, e.y, COL.lime, e.boss ? 30 : 6, e.boss ? 260 : 120);
+    if (e.boss) {
+      if (!opts.reduced) shake = 0.5;
+      toast("KERNEL PATCHED", COL.lime);
+    }
+    // Peluang menjatuhkan buff
+    const n = e.boss ? 2 : Math.random() < (e.big ? 0.3 : 0.1) ? 1 : 0;
+    for (let i = 0; i < n; i++)
+      drops.push({ x: e.x + (i - (n - 1) / 2) * 34, y: e.y, kind: pickDrop(), t: 0 });
+    cb.onHud(score, wave, lives);
+  }
+
+  function applyBuff(kind: BuffKind) {
+    const b = BUFFS[kind];
+    if (kind === "spread") buffs.spread = 9;
+    else if (kind === "rapid") buffs.rapid = 9;
+    else if (kind === "slow") buffs.slow = 6;
+    else if (kind === "shield") shield = 14;
+    else if (kind === "heal") {
+      lives = Math.min(MAX_LIVES, lives + 1);
+      cb.onHud(score, wave, lives);
+    } else if (kind === "bomb") {
+      flash = 0.3;
+      if (!opts.reduced) shake = 0.3;
+      for (const e of enemies) {
+        if (e.hp <= 0 || e.y < -e.h / 2) continue;
+        if (e.boss) {
+          e.hp -= 10;
+          e.flash = 0.15;
+          if (e.hp <= 0) killEnemy(e);
+        } else killEnemy(e);
+      }
+      bullets = bullets.filter((x) => !x.enemy);
+    }
+    burst(px, H - 50 * scale(), b.color, 18, 160);
+    toast(`+ ${b.name}`, b.color);
+  }
+
   function hitPlayer() {
     if (invuln > 0) return;
+    if (shield > 0) {
+      // Firewall menahan satu serangan
+      shield = 0;
+      invuln = 1;
+      burst(px, H - 50 * scale(), BUFFS.shield.color, 24, 220);
+      toast("FIREWALL DOWN", BUFFS.shield.color);
+      return;
+    }
     lives -= 1;
+    combo = 0;
     invuln = 1.6;
     if (!opts.reduced) shake = 0.35;
     burst(px, H - 50, COL.magenta, 28, 240);
@@ -215,14 +363,34 @@ export function createGame(
       cancelAnimationFrame(raf);
       burst(px, H - 50, COL.lime, 50, 320);
       draw();
-      cb.onOver(score);
+      cb.onOver(score, wave);
     }
+  }
+
+  function fire(playerY: number, s: number) {
+    const shot = (dx: number, dy: number, vx: number) =>
+      bullets.push({ x: px + dx * s, y: playerY + dy * s, vx, vy: -720, enemy: false });
+    // Level senjata naik otomatis: wave 3 → ganda, wave 6 → tiga arah
+    if (wave >= 6) {
+      shot(0, -22, 0);
+      shot(-12, -8, -40);
+      shot(12, -8, 40);
+    } else if (wave >= 3) {
+      shot(-6, -18, 0);
+      shot(6, -18, 0);
+    } else shot(0, -22, 0);
+    if (buffs.spread > 0) {
+      shot(-8, -12, -230);
+      shot(8, -12, 230);
+    }
+    cooldown = buffs.rapid > 0 ? 0.1 : 0.2;
   }
 
   function update(dt: number) {
     animT += dt;
     const s = scale();
     const playerY = H - 50 * s;
+    const sf = slowF();
 
     // gerak pemain (pointer = target, keyboard = langsung)
     const speed = 520 * s;
@@ -233,13 +401,16 @@ export function createGame(
 
     // tembak otomatis
     cooldown -= dt;
-    if (cooldown <= 0) {
-      bullets.push({ x: px, y: playerY - 22 * s, vy: -720, enemy: false });
-      if (wave >= 4) {
-        bullets.push({ x: px - 14 * s, y: playerY - 8 * s, vy: -680, enemy: false });
-        bullets.push({ x: px + 14 * s, y: playerY - 8 * s, vy: -680, enemy: false });
-      }
-      cooldown = 0.22;
+    if (cooldown <= 0) fire(playerY, s);
+
+    // timer buff & combo
+    buffs.spread = Math.max(0, buffs.spread - dt);
+    buffs.rapid = Math.max(0, buffs.rapid - dt);
+    buffs.slow = Math.max(0, buffs.slow - dt);
+    shield = Math.max(0, shield - dt);
+    if (comboT > 0) {
+      comboT -= dt;
+      if (comboT <= 0) combo = 0;
     }
 
     // spawn
@@ -248,35 +419,50 @@ export function createGame(
       if (spawnTimer <= 0) {
         spawn();
         toSpawn -= 1;
-        spawnTimer = Math.max(0.28, 0.9 - wave * 0.06) * (0.6 + Math.random() * 0.8);
+        spawnTimer = Math.max(0.3, 1.05 - wave * 0.06) * (0.6 + Math.random() * 0.8);
       }
     } else if (enemies.length === 0) {
       wave += 1;
       score += 50;
       cb.onHud(score, wave, lives);
+      if (wave === 3 || wave === 6) toast("WEAPON UPGRADE", COL.lime);
       startWave();
     }
     if (waveBanner > 0) waveBanner -= dt;
 
-    // musuh
+    // Laju tembakan musuh per detik: wave 1 tidak menembak sama sekali
+    const fireRate = wave < 2 ? 0 : 0.04 + (wave - 2) * 0.035;
     for (const e of enemies) {
-      e.t += dt;
-      e.y += e.speed * dt;
-      e.x = Math.min(Math.max(e.baseX + Math.sin(e.t * e.freq) * e.amp, e.w / 2), W - e.w / 2);
+      e.t += dt * sf;
       if (e.flash > 0) e.flash -= dt;
-      const fireChance = (0.0015 + wave * 0.0009) * (e.big ? 2.5 : 1);
-      if (e.y > 0 && e.y < H * 0.7 && Math.random() < fireChance) {
-        bullets.push({ x: e.x, y: e.y + e.h / 2, vy: 260 + wave * 15, enemy: true });
+      if (e.boss) {
+        // Boss turun lalu melayang kiri-kanan di atas, menembak 3 arah
+        if (e.y < H * 0.2) e.y += e.speed * dt * sf;
+        e.x = W / 2 + Math.sin(e.t * e.freq) * e.amp;
+        e.fireT -= dt * sf;
+        if (e.fireT <= 0 && e.y > 0) {
+          for (const vx of [-110, 0, 110])
+            bullets.push({ x: e.x, y: e.y + e.h / 2, vx, vy: 210, enemy: true });
+          e.fireT = Math.max(0.9, 1.7 - wave * 0.04);
+        }
+        continue;
+      }
+      e.y += e.speed * dt * sf;
+      e.x = Math.min(Math.max(e.baseX + Math.sin(e.t * e.freq) * e.amp, e.w / 2), W - e.w / 2);
+      const chance = fireRate * (e.big ? 2.2 : 1) * dt * sf;
+      if (e.y > 0 && e.y < H * 0.65 && Math.random() < chance) {
+        bullets.push({ x: e.x, y: e.y + e.h / 2, vx: 0, vy: 200 + wave * 12, enemy: true });
       }
     }
     // musuh lolos ke bawah = server kena
     for (const e of enemies) {
+      if (e.boss) continue;
       if (e.y - e.h / 2 > H) {
         e.hp = -1;
         hitPlayer();
       } else if (
-        Math.abs(e.x - px) < (e.w + 34 * s) / 2 &&
-        Math.abs(e.y - playerY) < (e.h + 30 * s) / 2
+        Math.abs(e.x - px) < (e.w + 24 * s) / 2 &&
+        Math.abs(e.y - playerY) < (e.h + 20 * s) / 2
       ) {
         e.hp = -1;
         burst(e.x, e.y, COL.violetSoft);
@@ -285,32 +471,47 @@ export function createGame(
     }
 
     // peluru
-    for (const b of bullets) b.y += b.vy * dt;
+    for (const b of bullets) {
+      const f = b.enemy ? sf : 1;
+      b.x += b.vx * dt * f;
+      b.y += b.vy * dt * f;
+    }
     for (const b of bullets) {
       if (b.enemy) {
-        if (Math.abs(b.x - px) < 18 * s && Math.abs(b.y - playerY) < 18 * s) {
+        if (Math.abs(b.x - px) < 13 * s && Math.abs(b.y - playerY) < 14 * s) {
           b.y = -9999;
           hitPlayer();
         }
         continue;
       }
       for (const e of enemies) {
-        if (e.hp > 0 && Math.abs(b.x - e.x) < e.w / 2 && Math.abs(b.y - e.y) < e.h / 2) {
+        // Hitbox sedikit lebih lebar dari sprite agar tembakan terasa adil
+        if (e.hp > 0 && Math.abs(b.x - e.x) < e.w / 2 + 4 * s && Math.abs(b.y - e.y) < e.h / 2) {
           e.hp -= 1;
           e.flash = 0.08;
           b.y = -9999;
-          if (e.hp <= 0) {
-            score += e.big ? 30 : 10;
-            burst(e.x, e.y, e.big ? COL.magenta : COL.violetSoft, e.big ? 30 : 16);
-            burst(e.x, e.y, COL.lime, 6, 120);
-            cb.onHud(score, wave, lives);
-          } else burst(b.x, b.y, COL.lime, 4, 90);
+          if (e.hp <= 0) killEnemy(e);
+          else burst(b.x, b.y, COL.lime, 4, 90);
           break;
         }
       }
     }
-    bullets = bullets.filter((b) => b.y > -40 && b.y < H + 40);
+    bullets = bullets.filter((b) => b.y > -40 && b.y < H + 40 && b.x > -40 && b.x < W + 40);
     enemies = enemies.filter((e) => e.hp > 0);
+
+    // buff jatuh → ambil dengan menyentuhnya
+    for (const d of drops) {
+      d.t += dt;
+      d.y += 95 * dt;
+      if (Math.abs(d.x - px) < 28 * s && Math.abs(d.y - playerY) < 28 * s) {
+        d.y = H + 999;
+        applyBuff(d.kind);
+      }
+    }
+    drops = drops.filter((d) => d.y < H + 30);
+    for (const t of toasts) t.t -= dt;
+    toasts = toasts.filter((t) => t.t > 0);
+    if (flash > 0) flash -= dt;
 
     // partikel & bintang
     for (const p of particles) {
@@ -347,10 +548,10 @@ export function createGame(
     ctx.save();
     // api pendorong
     const flame = 6 + Math.sin(animT * 40) * 3;
-    ctx.fillStyle = "rgba(198,255,61,0.85)";
+    ctx.fillStyle = buffs.rapid > 0 ? "rgba(255,197,61,0.9)" : "rgba(198,255,61,0.85)";
     ctx.beginPath();
     ctx.moveTo(...p(-5, 14));
-    ctx.lineTo(...p(0, 14 + flame));
+    ctx.lineTo(...p(0, 14 + flame * (buffs.rapid > 0 ? 1.6 : 1)));
     ctx.lineTo(...p(5, 14));
     ctx.fill();
     // badan oktagon bersayap
@@ -384,6 +585,107 @@ export function createGame(
     ctx.lineTo(...p(-5, 4));
     ctx.lineTo(...p(5, 4));
     ctx.stroke();
+    // perisai firewall
+    if (shield > 0) {
+      const blink = shield < 2.5 && Math.floor(animT * 8) % 2 === 0;
+      if (!blink) {
+        ctx.strokeStyle = BUFFS.shield.color;
+        ctx.globalAlpha = 0.55 + Math.sin(animT * 6) * 0.2;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y - 3 * s, 30 * s, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.08;
+        ctx.fillStyle = BUFFS.shield.color;
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  /** Kapsul buff: kotak bersudut dengan kode 2 huruf, berdenyut. */
+  function drawDrop(d: Drop, s: number) {
+    const b = BUFFS[d.kind];
+    const w = 30 * s;
+    const h = 20 * s;
+    const pulse = 1 + Math.sin(d.t * 8) * 0.08;
+    ctx.save();
+    ctx.translate(d.x, d.y);
+    ctx.scale(pulse, pulse);
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = b.color;
+    ctx.fillRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "#100e1a";
+    ctx.strokeStyle = b.color;
+    ctx.lineWidth = 2;
+    const c = 5 * s;
+    ctx.beginPath();
+    ctx.moveTo(-w / 2 + c, -h / 2);
+    ctx.lineTo(w / 2, -h / 2);
+    ctx.lineTo(w / 2, h / 2 - c);
+    ctx.lineTo(w / 2 - c, h / 2);
+    ctx.lineTo(-w / 2, h / 2);
+    ctx.lineTo(-w / 2, -h / 2 + c);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = b.color;
+    ctx.font = `700 ${Math.round(11 * s)}px ui-monospace, Consolas, monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(b.tag, 0, 1);
+    ctx.restore();
+  }
+
+  /** HUD di dalam kanvas: buff aktif (kiri atas), combo (kanan atas), HP boss (tengah). */
+  function drawOverlayHud(s: number) {
+    ctx.save();
+    ctx.font = `700 ${Math.round(10 * s)}px ui-monospace, Consolas, monospace`;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    // HP boss di paling atas → isi HUD lain digeser ke bawah
+    const boss = enemies.find((e) => e.boss);
+    const top = boss ? 30 * s : 0;
+    if (boss) {
+      ctx.fillStyle = "rgba(255,61,154,0.18)";
+      ctx.fillRect(18, 12, W - 36, 5);
+      ctx.fillStyle = COL.magenta;
+      ctx.fillRect(18, 12, (W - 36) * Math.max(0, boss.hp / boss.maxHp), 5);
+      ctx.fillText("KERNEL PANIC", 18, 12 + 16 * s);
+    }
+    const active: [string, string, number, number][] = [];
+    if (shield > 0) active.push([BUFFS.shield.name, BUFFS.shield.color, shield, 14]);
+    if (buffs.spread > 0) active.push([BUFFS.spread.name, BUFFS.spread.color, buffs.spread, 9]);
+    if (buffs.rapid > 0) active.push([BUFFS.rapid.name, BUFFS.rapid.color, buffs.rapid, 9]);
+    if (buffs.slow > 0) active.push([BUFFS.slow.name, BUFFS.slow.color, buffs.slow, 6]);
+    active.forEach(([name, color, left, total], i) => {
+      const y = top + 22 + i * 18 * s;
+      ctx.fillStyle = color;
+      ctx.fillText(name, 18, y);
+      const bx = 18 + 96 * s;
+      ctx.fillStyle = "rgba(132,126,160,0.3)";
+      ctx.fillRect(bx, y - 2, 56 * s, 4);
+      ctx.fillStyle = color;
+      ctx.fillRect(bx, y - 2, 56 * s * (left / total), 4);
+    });
+
+    const m = multiplier();
+    if (combo >= 3) {
+      ctx.textAlign = "right";
+      ctx.fillStyle = m > 1 ? COL.lime : COL.ink3;
+      ctx.font = `700 ${Math.round((m > 1 ? 14 : 11) * s)}px ui-monospace, Consolas, monospace`;
+      ctx.fillText(`COMBO ${combo}${m > 1 ? `  ×${m}` : ""}`, W - 18, top + 24);
+    }
+
+    // notifikasi singkat (buff diambil, upgrade, dll.)
+    ctx.textAlign = "center";
+    toasts.forEach((t, i) => {
+      ctx.globalAlpha = Math.min(1, t.t * 2);
+      ctx.fillStyle = t.color;
+      ctx.font = `700 ${Math.round(12 * s)}px ui-monospace, Consolas, monospace`;
+      ctx.fillText(t.text, W / 2, H * 0.55 - (1.4 - t.t) * 30 - i * 20 * s);
+    });
     ctx.restore();
   }
 
@@ -395,7 +697,7 @@ export function createGame(
     if (shake > 0) ctx.translate((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
 
     // grid + bintang
-    ctx.strokeStyle = COL.grid;
+    ctx.strokeStyle = buffs.slow > 0 ? "rgba(167,139,250,0.16)" : COL.grid;
     ctx.lineWidth = 1;
     const g = 40;
     const off = (animT * 30) % g;
@@ -422,11 +724,13 @@ export function createGame(
 
     // musuh
     const frame = Math.floor(animT * 4) % 2 === 0;
-    ctx.font = `${Math.round(10 * s)}px ui-monospace, Consolas, monospace`;
     ctx.textAlign = "center";
     for (const e of enemies) {
       const color = e.flash > 0 ? COL.ink : e.big ? COL.magenta : COL.violetSoft;
-      sprite(e.big ? (frame ? BIG_A : BIG_B) : frame ? BUG_A : BUG_B, e.x, e.y, 4 * s, color);
+      const px4 = 4 * s * (e.boss ? 2 : 1);
+      sprite(e.big ? (frame ? BIG_A : BIG_B) : frame ? BUG_A : BUG_B, e.x, e.y, px4, color);
+      if (e.boss) continue;
+      ctx.font = `${Math.round(10 * s)}px ui-monospace, Consolas, monospace`;
       ctx.fillStyle = COL.ink3;
       ctx.fillText(e.label, e.x, e.y + e.h / 2 + 12 * s);
       if (e.big) {
@@ -436,6 +740,9 @@ export function createGame(
         }
       }
     }
+
+    // buff yang jatuh
+    for (const d of drops) drawDrop(d, s);
 
     // peluru
     for (const b of bullets) {
@@ -466,9 +773,21 @@ export function createGame(
     // banner wave
     if (running && waveBanner > 0) {
       ctx.globalAlpha = Math.min(1, waveBanner);
-      ctx.fillStyle = COL.lime;
+      ctx.fillStyle = isBossWave() ? COL.magenta : COL.lime;
       ctx.font = `700 ${Math.round(14 * s)}px ui-monospace, Consolas, monospace`;
-      ctx.fillText(`— WAVE ${String(wave).padStart(2, "0")} —`, W / 2, H * 0.42);
+      ctx.textAlign = "center";
+      const label = isBossWave() ? "BOSS WAVE" : "WAVE";
+      ctx.fillText(`— ${label} ${String(wave).padStart(2, "0")} —`, W / 2, H * 0.42);
+      ctx.globalAlpha = 1;
+    }
+
+    if (running) drawOverlayHud(s);
+
+    // kilatan layar saat HOTFIX
+    if (flash > 0) {
+      ctx.globalAlpha = Math.min(0.55, flash * 2);
+      ctx.fillStyle = COL.ink;
+      ctx.fillRect(0, 0, W, H);
       ctx.globalAlpha = 1;
     }
     ctx.restore();

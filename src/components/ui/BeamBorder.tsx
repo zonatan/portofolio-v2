@@ -4,10 +4,12 @@ import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { VIEWPORT } from "@/lib/motion";
 
-const BEAMS = [
+export type Beam = { color: string; glow: string; length: number; phase: number };
+
+const BEAMS: Beam[] = [
   { color: "#c6ff3d", glow: "rgb(198 255 61 / 0.75)", length: 140, phase: 0 },
   { color: "#a78bfa", glow: "rgb(139 92 246 / 0.8)", length: 100, phase: 0.5 },
-] as const;
+];
 
 /** Satu segmen jalur border: titik awal, arah (derajat, searah jarum jam), panjang. */
 type Segment = { x: number; y: number; angle: number; len: number };
@@ -56,8 +58,14 @@ export function BeamBorder({
   shape = "corner",
   duration = 7,
   delay = 0,
+  beams = BEAMS,
+  outline = "rgb(167 139 250 / 0.55)",
 }: {
   shape?: "corner" | "tr";
+  /** Warna/panjang sinar (opsional). Gunakan konstanta modul agar referensinya stabil. */
+  beams?: Beam[];
+  /** Warna garis outline. */
+  outline?: string;
   /** Detik untuk satu putaran penuh. */
   duration?: number;
   delay?: number;
@@ -87,7 +95,7 @@ export function BeamBorder({
     const speed = perimeter / cycle; // px per ms
     const anims: Animation[] = [];
 
-    BEAMS.forEach((beam, bi) => {
+    beams.forEach((beam, bi) => {
       let elapsed = 0; // waktu kepala sinar tiba di awal segmen ini
       segments.forEach((seg, si) => {
         const bar = root.querySelector<HTMLElement>(`[data-beam="${bi}-${si}"]`);
@@ -126,7 +134,7 @@ export function BeamBorder({
       anims.forEach((a) => a.cancel());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [w, h, shape, duration, delay]);
+  }, [w, h, shape, duration, delay, beams]);
 
   const o = 1; // inset agar garis outline tidak terpotong clip-path
   const d =
@@ -147,7 +155,7 @@ export function BeamBorder({
             <motion.path
               d={d}
               fill="none"
-              stroke="rgb(167 139 250 / 0.55)"
+              stroke={outline}
               strokeWidth={1}
               initial={{ pathLength: 0 }}
               whileInView={{ pathLength: 1 }}
@@ -171,7 +179,7 @@ export function BeamBorder({
                 transformOrigin: "0 0",
               }}
             >
-              {BEAMS.map((beam, bi) => (
+              {beams.map((beam, bi) => (
                 <span
                   key={bi}
                   data-beam={`${bi}-${si}`}

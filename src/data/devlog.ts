@@ -19,6 +19,26 @@ export type DevlogEntry = {
  */
 export const devlog: DevlogEntry[] = [
   {
+    version: "v2.1",
+    date: "12 NOV 2026",
+    tag: "release",
+    title: { id: "Bug Hunter v2, Hall of Fame & Player Log", en: "Bug Hunter v2, Hall of Fame & Player Log" },
+    notes: [
+      {
+        id: "Bug Hunter v2: 6 buff, combo s/d ×4, senjata naik level, dan boss KERNEL PANIC tiap 5 wave. Wave awal dibuat lebih ramah.",
+        en: "Bug Hunter v2: 6 buffs, combos up to ×4, weapon level-ups, and a KERNEL PANIC boss every 5 waves. Early waves are friendlier.",
+      },
+      {
+        id: "Hall of Fame: 10 skor terbaik Bug Hunter tersimpan online.",
+        en: "Hall of Fame: the top 10 Bug Hunter scores are saved online.",
+      },
+      {
+        id: "Player Log: buku tamu untuk meninggalkan pesan singkat.",
+        en: "Player Log: a guestbook for leaving a quick message.",
+      },
+    ],
+  },
+  {
     version: "v2.0",
     date: "11 NOV 2026",
     tag: "release",

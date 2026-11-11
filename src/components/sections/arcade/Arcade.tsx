@@ -1,6 +1,6 @@
 "use client";
 
-import { Gamepad2, Pause, Play, RotateCcw } from "lucide-react";
+import { Check, Gamepad2, Pause, Play, RotateCcw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/providers/LanguageProvider";
@@ -12,9 +12,12 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { usePrefersReducedMotion } from "@/lib/hooks";
 import { EASE } from "@/lib/motion";
 import { cn, pad2 } from "@/lib/utils";
-import { createGame, type Game } from "./engine";
+import { sectionNumber } from "@/data/sections";
+import { BUFFS, createGame, type BuffKind, type Game } from "./engine";
+import { Leaderboard, qualifies, type ScoreEntry } from "./Leaderboard";
 
 const HI_KEY = "zs-arcade-hi";
+const NAME_KEY = "zs-arcade-name";
 type Status = "ready" | "playing" | "paused" | "over";
 
 function readHi() {
@@ -36,7 +39,14 @@ export function Arcade() {
   const waveRef = useRef<HTMLSpanElement>(null);
   const livesRef = useRef<HTMLSpanElement>(null);
   const [status, setStatusState] = useState<Status>("ready");
-  const [final, setFinal] = useState({ score: 0, best: 0, record: false });
+  const [final, setFinal] = useState({ score: 0, wave: 1, best: 0, record: false });
+  const [entries, setEntries] = useState<ScoreEntry[] | null>(null);
+  const [lbState, setLbState] = useState<"loading" | "ready" | "offline">("loading");
+  const [name, setName] = useState("");
+  const [submit, setSubmit] = useState<"idle" | "sending" | "saved" | "name" | "rate" | "fail">(
+    "idle",
+  );
+  const [highlight, setHighlight] = useState<string>();
   const statusRef = useRef<Status>("ready");
   const setStatus = useCallback((s: Status) => {
     statusRef.current = s;
@@ -69,7 +79,7 @@ export function Arcade() {
             livesRef.current.textContent =
               "■".repeat(Math.max(0, lives)) + "□".repeat(Math.max(0, 3 - lives));
         },
-        onOver: (score) => {
+        onOver: (score, wave) => {
           const prev = readHi();
           const record = score > prev;
           if (record) {
@@ -79,7 +89,8 @@ export function Arcade() {
               /* abaikan */
             }
           }
-          setFinal({ score, best: Math.max(prev, score), record });
+          setFinal({ score, wave, best: Math.max(prev, score), record });
+          setSubmit("idle");
           setStatus("over");
         },
       },
@@ -94,6 +105,66 @@ export function Arcade() {
       gameRef.current = null;
     };
   }, [reduced, setStatus]);
+
+  // Ambil leaderboard sekali saat area game mendekati layar
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        try {
+          setName(localStorage.getItem(NAME_KEY) ?? "");
+        } catch {
+          /* abaikan */
+        }
+        fetch("/api/leaderboard/", { cache: "no-store" })
+          .then((r) => (r.ok ? r.json() : Promise.reject()))
+          .then((d: { entries: ScoreEntry[] }) => {
+            setEntries(d.entries);
+            setLbState("ready");
+          })
+          .catch(() => setLbState("offline"));
+      },
+      { rootMargin: "400px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const saveScore = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const n = name.trim().toUpperCase();
+    if (!/^[A-Z0-9_]{3,12}$/.test(n)) {
+      setSubmit("name");
+      return;
+    }
+    setSubmit("sending");
+    try {
+      const res = await fetch("/api/leaderboard/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: n, score: final.score, wave: final.wave }),
+      });
+      if (!res.ok) {
+        setSubmit(res.status === 429 ? "rate" : res.status === 400 ? "name" : "fail");
+        return;
+      }
+      const d = (await res.json()) as { entries: ScoreEntry[] };
+      setEntries(d.entries);
+      setLbState("ready");
+      setHighlight(n);
+      setSubmit("saved");
+      try {
+        localStorage.setItem(NAME_KEY, n);
+      } catch {
+        /* abaikan */
+      }
+    } catch {
+      setSubmit("fail");
+    }
+  };
 
   // Jeda otomatis saat game keluar layar atau tab disembunyikan
   useEffect(() => {
@@ -157,7 +228,18 @@ export function Arcade() {
     if (statusRef.current === "playing") gameRef.current?.setTargetFromClient(e.clientX);
   };
 
+  // Selama bermain, ikuti posisi kursor di SELURUH jendela: kursor boleh keluar frame game,
+  // pesawat tetap mengikuti posisi horizontalnya (dibatasi di tepi arena).
+  useEffect(() => {
+    if (status !== "playing") return;
+    const onMove = (e: PointerEvent) => gameRef.current?.setTargetFromClient(e.clientX);
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [status]);
+
   const best = status === "over" ? final.best : 0;
+  const canSubmit = status === "over" && qualifies(entries, final.score);
+  const lb = a.lb;
 
   return (
     <Section id="arcade" bgWord={a.bg} className="pb-28 md:pb-32">
@@ -210,9 +292,7 @@ export function Arcade() {
           <div
             ref={wrapRef}
             tabIndex={-1}
-            onPointerMove={onPointer}
             onPointerDown={onPointer}
-            data-lenis-prevent-touch
             className={cn(
               "clip-corner relative aspect-[3/4] max-h-[78svh] w-full overflow-hidden outline-none sm:aspect-[16/9] sm:max-h-[70svh]",
               status === "playing" && "cursor-crosshair touch-none",
@@ -239,7 +319,7 @@ export function Arcade() {
                   {status === "ready" && (
                     <>
                       <p className="hud-label text-lime mb-3">
-                        {a.label} {"//"} 06
+                        {a.label} {"//"} {sectionNumber("arcade")}
                       </p>
                       <p className="font-display text-6xl leading-none font-bold uppercase sm:text-8xl">
                         BUG <span className="text-violet-soft">HUNTER</span>
@@ -291,9 +371,55 @@ export function Arcade() {
                         </div>
                       </div>
                       {final.record && (
-                        <p className="hud-label text-lime mt-4 animate-pulse">{a.newBest}</p>
+                        <p className="hud-label text-lime mt-3 animate-pulse">{a.newBest}</p>
                       )}
-                      <div className="mt-7">
+                      {(canSubmit || submit === "saved") && (
+                        <div className="mx-auto mt-5 w-full max-w-sm">
+                          {submit === "saved" ? (
+                            <p className="hud-label text-lime flex items-center justify-center gap-2">
+                              <Check size={14} aria-hidden /> {lb.saved}
+                            </p>
+                          ) : (
+                            <form onSubmit={saveScore} noValidate>
+                              <label htmlFor="lb-name" className="text-ink-2 mb-2 block text-sm">
+                                {lb.enter}
+                              </label>
+                              <div className="flex gap-2">
+                                <input
+                                  id="lb-name"
+                                  value={name}
+                                  onChange={(e) =>
+                                    setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ""))
+                                  }
+                                  maxLength={12}
+                                  autoComplete="nickname"
+                                  placeholder={lb.namePh}
+                                  aria-invalid={submit === "name"}
+                                  className="clip-corner-sm border-violet-dim/60 bg-abyss/80 text-ink placeholder:text-ink-3 focus:border-lime min-w-0 flex-1 border px-3 py-2 font-mono text-sm tracking-widest uppercase outline-none"
+                                />
+                                <Button
+                                  type="submit"
+                                  size="sm"
+                                  magnetic={false}
+                                  disabled={submit === "sending"}
+                                >
+                                  {lb.save}
+                                </Button>
+                              </div>
+                              {(submit === "name" || submit === "rate" || submit === "fail") && (
+                                <p role="alert" className="text-magenta mt-2 text-xs">
+                                  {submit === "name"
+                                    ? lb.errName
+                                    : submit === "rate"
+                                      ? lb.errRate
+                                      : lb.errFail}
+                                </p>
+                              )}
+                            </form>
+                          )}
+                        </div>
+                      )}
+                      <div className="mt-6">
                         <Button onClick={start}>
                           <RotateCcw size={15} aria-hidden />
                           {a.again}
@@ -306,7 +432,56 @@ export function Arcade() {
             </AnimatePresence>
           </div>
         </div>
+        <BuffLegend />
+        <Leaderboard entries={entries} state={lbState} highlight={highlight} />
       </Reveal>
     </Section>
+  );
+}
+
+/** Legenda buff (kapsul yang dijatuhkan bug) + ringkasan fitur v2. */
+function BuffLegend() {
+  const { t } = useI18n();
+  const a = t.arcade;
+  return (
+    <div className="hud-panel clip-corner-tr mt-4 p-4 sm:p-5">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-lime font-mono text-xs font-semibold tracking-[0.18em] uppercase">
+          {a.buffTitle}
+        </p>
+        <p className="text-ink-3 text-xs">{a.buffHint}</p>
+      </div>
+      <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+        {(Object.keys(BUFFS) as BuffKind[]).map((k) => {
+          const b = BUFFS[k];
+          return (
+            <li key={k} className="flex items-center gap-3">
+              <span
+                className="clip-corner-sm grid h-7 w-10 shrink-0 place-items-center border font-mono text-[0.6875rem] font-bold"
+                style={{ color: b.color, borderColor: b.color, background: "#100e1a" }}
+              >
+                {b.tag}
+              </span>
+              <span className="min-w-0 leading-tight">
+                <span className="block font-mono text-xs tracking-wider" style={{ color: b.color }}>
+                  {b.name}
+                </span>
+                <span className="text-ink-2 block text-xs">{a.buffs[k]}</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <ul className="border-violet-dim/25 text-ink-2 mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t pt-3 text-xs">
+        {a.extras.map((x) => (
+          <li key={x} className="flex items-center gap-2">
+            <span aria-hidden className="text-lime">
+              ▸
+            </span>
+            {x}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

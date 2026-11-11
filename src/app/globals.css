@@ -454,6 +454,56 @@
   }
 }
 
+/* ===== Hall of Fame (podium leaderboard) ===== */
+/* Aura berdenyut di belakang kartu podium (opacity + scale → GPU) */
+.podium-aura {
+  animation: podium-aura 3.2s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+@keyframes podium-aura {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+/* Border berdenyut (juara 3) */
+.podium-pulse {
+  animation: podium-pulse 2.6s ease-in-out infinite;
+}
+@keyframes podium-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+/* Percikan bintang naik di kartu juara 1 */
+.podium-spark {
+  animation: podium-spark 2.8s ease-out infinite;
+  animation-delay: var(--d, 0s);
+  opacity: 0;
+}
+@keyframes podium-spark {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-46px) scale(1);
+  }
+}
+
 /* ===== Animasi foto ===== */
 /* Glitch digital: dipicu JS (kelas .glitching ~0,36 detik tiap ~7 detik) */
 .glitch-a,
@@ -584,7 +634,10 @@
 .badge-float,
 .radar-ring,
 .rank-pulse,
-.trophy-shine::after {
+.trophy-shine::after,
+.podium-aura,
+.podium-pulse,
+.podium-spark {
   will-change: transform, opacity;
 }
 
@@ -702,7 +755,10 @@ html.boot-skip #boot-loader {
   .glitch-a,
   .glitch-b,
   .photo-scan,
-  .photo-shine {
+  .photo-shine,
+  .podium-aura,
+  .podium-pulse,
+  .podium-spark {
     animation: none !important;
   }
 }
