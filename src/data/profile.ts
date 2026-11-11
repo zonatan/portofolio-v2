@@ -26,10 +26,9 @@ export const profile = {
   studyYear: 4,
   email: "zonatan.sh03@gmail.com",
   openToWork: true,
-  // TODO: ganti — bio singkat sesuai gaya kamu
   bio: {
-    id: "Saya mahasiswa Teknik Informatika UNIMA yang suka membangun sesuatu dari nol sampai benar-benar dipakai orang: dari sistem informasi berbasis Laravel & Filament, model computer vision dengan Python, hingga men-deploy dan mengamankan server sendiri. Saya senang menggabungkan desain yang rapi dengan kode yang bisa dipertanggungjawabkan, dan belakangan banyak bereksperimen mengintegrasikan AI/LLM lokal ke aplikasi nyata.",
-    en: "I'm an Informatics Engineering student at UNIMA who likes building things from scratch until people actually use them: Laravel & Filament information systems, computer vision models in Python, and deploying and hardening my own servers. I enjoy pairing clean design with accountable code, and lately I've been experimenting with integrating local AI/LLMs into real applications.",
+    id: "Saya adalah mahasiswa Teknik Informatika Universitas Negeri Manado (UNIMA) dengan minat utama pada pengembangan solusi perangkat lunak yang aplikatif dan berdampak. Saya memiliki pengalaman dalam membangun sistem informasi berbasis Laravel dan Filament, mengembangkan model computer vision dengan Python, serta mengelola penerapan dan keamanan server secara mandiri. Dalam setiap proyek, saya menjunjung tinggi kualitas desain dan keandalan kode. Saat ini, saya tengah mengembangkan integrasi Large Language Model (LLM) lokal pada sistem informasi sebagai bagian dari penelitian tugas akhir.",
+    en: "I am an Informatics Engineering student at Universitas Negeri Manado (UNIMA) with a primary interest in building practical, impactful software solutions. I have experience developing information systems with Laravel and Filament, building computer vision models with Python, and independently managing server deployment and security. In every project, I hold design quality and code reliability to a high standard. I am currently developing a local Large Language Model (LLM) integration for an information system as part of my undergraduate thesis research.",
   } satisfies Localized,
   // TODO: ganti — kalimat kedua bio (opsional)
   bio2: {
