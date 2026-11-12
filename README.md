@@ -1,7 +1,12 @@
 # Portofolio — Zonatan Sihombing
 
 Website portofolio bertema **HUD / game interface** ("profil pemain") dengan palet **Volt Violet**.
-Dibangun dengan Next.js (App Router, output statis), TypeScript, Tailwind CSS v4, Motion, dan Lenis.
+Dibangun dengan Next.js (App Router), TypeScript, Tailwind CSS v4, dan Motion, di-deploy di Vercel
+dengan Upstash Redis untuk data yang bisa diubah pengunjung (kutipan, buku tamu, leaderboard game).
+
+**Fitur utama:** kartu foto 3D yang bisa dibalik, Attribute Radar, statistik GitHub live, mini-game
+**Bug Hunter** (buff, combo, boss) dengan **Hall of Fame** online, buku tamu **Player Log**, dua bahasa
+(ID/EN), kartu pratinjau link otomatis, serta Vercel Analytics & Speed Insights.
 
 ---
 
@@ -36,7 +41,7 @@ src/
     layout/       Navbar, BootLoader, FloatingHud (sektor + back-to-top), Footer, Ticker, CustomCursor
     sections/     Hero, Profile, Loadout, missions/ (Missions, ProjectCard, ProjectModal), QuestLog, Comms
     ui/           Button, Section, SectionHeading, Reveal, AnimatedText, CornerBrackets, TechIcon, ...
-    providers/    LanguageProvider (ID/EN), SmoothScroll (Lenis), MotionProvider
+    providers/    LanguageProvider (ID/EN), SmoothScroll (scroll native), MotionProvider
   data/           ← SEMUA KONTEN ADA DI SINI
     profile.ts    nama, bio, email, sosial, path foto & CV
     projects.ts   daftar proyek (MISSIONS)
@@ -151,12 +156,18 @@ Jangan lupa ganti `email` di `profile.ts` dengan email asli.
 3. Framework terdeteksi otomatis sebagai **Next.js** — biarkan pengaturan default.
 4. Di **Environment Variables**, tambahkan `NEXT_PUBLIC_FORMSPREE_ENDPOINT` dan `NEXT_PUBLIC_SITE_URL` (URL final situs kamu).
 5. Klik **Deploy**. Setiap push ke branch utama akan otomatis ter-deploy ulang.
+6. Aktifkan statistik pengunjung: tab **Analytics** → **Enable**, dan tab **Speed Insights** → **Enable**, lalu **Redeploy** sekali.
 
 `NEXT_PUBLIC_SITE_URL` dipakai untuk metadata Open Graph, `sitemap.xml`, dan `robots.txt` — isi sesuai domain asli agar preview link benar.
+Jika kosong, dipakai domain produksi Vercel secara otomatis.
 
-### Mengaktifkan kutipan yang bisa diedit (wajib sekali saja)
+Kartu pratinjau link (WhatsApp, LinkedIn, Discord, X) dibuat otomatis saat build dari foto & data profil
+dan disajikan sebagai JPEG kecil di `/og-image.jpg` (WhatsApp mengabaikan gambar besar atau yang dialihkan).
 
-Kutipan di balik kartu foto disimpan di **Upstash Redis** (gratis) supaya permanen untuk semua pengunjung.
+### Mengaktifkan penyimpanan Redis (wajib sekali saja)
+
+Kutipan di balik kartu foto, buku tamu, dan leaderboard game disimpan di **Upstash Redis** (gratis)
+supaya permanen untuk semua pengunjung.
 
 1. Di dashboard Vercel → project kamu → tab **Storage** → **Create Database** → pilih **Upstash (Redis)** → ikuti langkahnya (paket Free).
 2. Hubungkan database itu ke project. Vercel otomatis menambahkan env `KV_REST_API_URL` & `KV_REST_API_TOKEN`
@@ -167,7 +178,8 @@ Kutipan di balik kartu foto disimpan di **Upstash Redis** (gratis) supaya perman
 Tanpa langkah ini situs tetap jalan dan menampilkan kutipan default, tapi menyimpan kutipan baru akan gagal
 ("Penyimpanan belum aktif di server").
 
-> Situs ini **bukan lagi export statis** (butuh server untuk `/api/quote`), jadi deploy di Vercel — bukan hosting statis biasa.
+> Situs ini **bukan export statis** (butuh server untuk `/api/quote`, `/api/guestbook`, `/api/leaderboard`),
+> jadi deploy di Vercel — bukan hosting statis biasa.
 
 ---
 
@@ -180,9 +192,37 @@ Tanpa langkah ini situs tetap jalan dan menampilkan kutipan default, tapi menyim
 - 5× PIN salah → IP tersebut dikunci 15 menit.
 - Saat development lokal, kutipan disimpan di `.data/quote.json`. Hapus file itu untuk kembali ke kutipan default (`profile.ts → quote`).
 
-## 8. Catatan teknis
+## 8. Buku tamu (Player Log)
 
-- **Animasi** memakai preset di `src/lib/motion.ts`. Semua animasi menghormati `prefers-reduced-motion` (loader, parallax, Lenis, dan cursor dimatikan).
+- Pengunjung menulis nama, kelas (Pengunjung / Developer / Rekruter / Mahasiswa), dan pesan maks. 160 karakter.
+- Anti-spam di server (`src/app/api/guestbook/route.ts`): pesan berisi link ditolak, jeda 60 detik per IP,
+  dan field tersembunyi (honeypot) untuk menyaring bot.
+- Menghapus pesan yang tidak pantas (butuh PIN admin = `QUOTE_EDIT_PIN`):
+
+```bash
+curl -X DELETE https://DOMAIN-KAMU/api/guestbook/ -H "Content-Type: application/json"   -d '{"pin":"PIN_KAMU","id":"ID_PESAN"}'
+```
+
+## 9. Bug Hunter & Hall of Fame
+
+- Mini-game shooter di section Arcade (`src/components/sections/arcade/engine.ts`, canvas tanpa library).
+- **v2:** wave awal lebih ramah, 6 buff (Multi-Thread, Overclock, Firewall, Patch, Debug Mode, Hotfix),
+  combo pengali skor s/d ×4, senjata naik level di wave 3 & 6, dan boss KERNEL PANIC tiap 5 wave.
+- Skor 10 besar masuk **Hall of Fame** (podium emas/perak/perunggu). Server menolak skor yang mustahil
+  untuk wave tersebut (`maxScoreFor` di `src/lib/server/leaderboard.ts` — sesuaikan bila aturan skor diubah).
+- Menghapus nama dari leaderboard (butuh PIN admin):
+
+```bash
+curl -X DELETE https://DOMAIN-KAMU/api/leaderboard/ -H "Content-Type: application/json"   -d '{"pin":"PIN_KAMU","name":"NAMA"}'
+```
+
+- Saat development lokal tanpa Redis, data buku tamu & leaderboard disimpan di `.data/` (tidak ikut ke GitHub).
+
+## 10. Catatan teknis
+
+- **Animasi** memakai preset di `src/lib/motion.ts`. Semua animasi menghormati `prefers-reduced-motion` (loader, parallax, dan cursor dimatikan).
+- **Performa:** scroll memakai smooth scroll bawaan browser; animasi tiap section dijeda otomatis saat
+  tidak terlihat (`useAnimPause`), dan animasi berulang hanya memakai `transform`/`opacity` (diproses GPU).
 - **Boot loader** tampil sekali per sesi (`sessionStorage`), bisa dilewati dengan klik/tombol apa pun, dan memiliki failsafe CSS sehingga tidak pernah memblokir konten.
 - **Efek berat** (tilt kartu, parallax mouse, cursor kustom, tombol magnetic) hanya aktif di desktop dengan mouse.
 - **Status jujur:** link sosial / demo / repo yang kosong otomatis tampil `SEGERA` dan nonaktif.
