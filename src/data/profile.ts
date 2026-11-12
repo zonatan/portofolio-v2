@@ -30,10 +30,9 @@ export const profile = {
     id: "Saya adalah mahasiswa Teknik Informatika Universitas Negeri Manado (UNIMA) dengan minat utama pada pengembangan solusi perangkat lunak yang aplikatif dan berdampak. Saya memiliki pengalaman dalam membangun sistem informasi berbasis Laravel dan Filament, mengembangkan model computer vision dengan Python, serta mengelola penerapan dan keamanan server secara mandiri. Dalam setiap proyek, saya menjunjung tinggi kualitas desain dan keandalan kode. Saat ini, saya tengah mengembangkan integrasi Large Language Model (LLM) lokal pada sistem informasi sebagai bagian dari penelitian tugas akhir.",
     en: "I am an Informatics Engineering student at Universitas Negeri Manado (UNIMA) with a primary interest in building practical, impactful software solutions. I have experience developing information systems with Laravel and Filament, building computer vision models with Python, and independently managing server deployment and security. In every project, I hold design quality and code reliability to a high standard. I am currently developing a local Large Language Model (LLM) integration for an information system as part of my undergraduate thesis research.",
   } satisfies Localized,
-  // TODO: ganti — kalimat kedua bio (opsional)
   bio2: {
-    id: "Berbasis di Manado, Sulawesi Utara. Terbuka untuk magang, proyek freelance, dan kolaborasi riset.",
-    en: "Based in Manado, North Sulawesi. Open to internships, freelance projects, and research collaborations.",
+    id: "Berdomisili di Manado, Sulawesi Utara. Terbuka untuk peluang magang, proyek lepas, dan kolaborasi penelitian.",
+    en: "Based in Manado, North Sulawesi. Open to internship opportunities, freelance projects, and research collaborations.",
   } satisfies Localized,
   /** Foto hero (rasio 4:5). Ganti file atau ubah path ini. */
   photo: "/images/profile/foto-utama.webp",
