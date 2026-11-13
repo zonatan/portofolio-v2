@@ -111,10 +111,10 @@ export function Hero() {
             {t.hero.greeting}
           </p>
           <h1 className="font-display leading-[0.82] font-bold uppercase">
-            <span className="block text-[clamp(4rem,15vw,9.5rem)] tracking-tight">
+            <span className="block text-[clamp(4rem,15vw,9.5rem)] tracking-tight lg:text-[clamp(4rem,11.5vw,9.5rem)]">
               <ScrambleText text={t.hero.line1} start={booted} />
             </span>
-            <span className="text-violet-soft block text-[clamp(4rem,15vw,9.5rem)] tracking-tight">
+            <span className="text-violet-soft block text-[clamp(4rem,15vw,9.5rem)] tracking-tight lg:text-[clamp(4rem,11.5vw,9.5rem)]">
               <ScrambleText text={t.hero.line2} start={booted} delay={150} />
             </span>
           </h1>
